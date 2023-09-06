@@ -5,24 +5,54 @@
 <mapper namespace="com.abing.mapper.InterfaceInfoMapper">
 
     <resultMap id="BaseResultMap" type="com.abing.model.domain.InterfaceInfo">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="description" column="description" jdbcType="VARCHAR"/>
-            <result property="url" column="url" jdbcType="VARCHAR"/>
-            <result property="requestHeader" column="requestHeader" jdbcType="VARCHAR"/>
-            <result property="responseHeader" column="responseHeader" jdbcType="VARCHAR"/>
-            <result property="status" column="status" jdbcType="INTEGER"/>
-            <result property="method" column="method" jdbcType="VARCHAR"/>
-            <result property="userId" column="userId" jdbcType="BIGINT"/>
-            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
-            <result property="deleteFlag" column="isDelete" jdbcType="TINYINT"/>
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="url" column="url" jdbcType="VARCHAR"/>
+        <result property="requestHeader" column="requestHeader" jdbcType="VARCHAR"/>
+        <result property="responseHeader" column="responseHeader" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="method" column="method" jdbcType="VARCHAR"/>
+        <result property="userId" column="userId" jdbcType="BIGINT"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="invokeTotal" column="invokeTotal" jdbcType="BIGINT"/>
+        <result property="deleted" column="deleted" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,name,description,
+        id
+        ,name,description,
         url,requestHeader,responseHeader,
         status,method,userId,
-        createTime,updateTime,isDelete
+        createTime,updateTime,invokeTotal,deleted
     </sql>
+
+    <select id="listInterfaces" parameterType="com.abing.model.domain.User"
+            resultType="com.abing.model.dto.interfaceinfo.InterfaceInfoDTO">
+        select
+        i.id,i.name,i.description,
+        i.url,i.requestHeader,i.responseHeader,
+        i.status,i.method,i.userId,
+        i.createTime,i.updateTime,i.invokeTotal,i.deleted,ui.leftNum
+        from interface_info i
+        inner join user_interface_info ui on i.id = ui.interfaceInfoId
+        where ui.userId = #{id}
+<!--        <if test="name != null">-->
+<!--            and i.name like concat('%',#{name},'%')-->
+<!--        </if>-->
+    </select>
+
+    <select id="searchInterfacesByName" parameterType="com.abing.model.domain.UserInterfaceInfo"
+            resultType="com.abing.model.dto.interfaceinfo.InterfaceInfoDTO">
+        select
+            i.id,i.name,i.description,
+            i.url,i.requestHeader,i.responseHeader,
+            i.status,i.method,i.userId,
+            i.createTime,i.updateTime,i.invokeTotal,i.deleted,ui.leftNum
+        from interface_info i
+                 inner join user_interface_info ui on i.id = ui.interfaceInfoId
+        where ui.userId = #{userId}
+          and i.name like concat('%', #{name}, '%')
+    </select>
 </mapper>

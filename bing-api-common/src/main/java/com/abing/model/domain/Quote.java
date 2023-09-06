@@ -39,8 +39,7 @@ public class Quote implements Serializable {
     /**
      * 是否删除
      */
-    @TableField("isDelete")
-    private Integer deleteFlag;
+    private Integer deleted;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

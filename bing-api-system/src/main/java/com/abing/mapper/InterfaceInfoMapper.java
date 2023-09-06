@@ -1,7 +1,11 @@
 package com.abing.mapper;
 
 import com.abing.model.domain.InterfaceInfo;
+import com.abing.model.domain.User;
+import com.abing.model.dto.interfaceinfo.InterfaceInfoDTO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+import java.util.List;
 
 /**
 * @author 阿炳亿点点帅
@@ -10,6 +14,16 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.abing.model.domain.InterfaceInfo
 */
 public interface InterfaceInfoMapper extends BaseMapper<InterfaceInfo> {
+
+    /**
+     * 获取当前用户所有接口的获取情况
+     * @param user
+     * @return
+     */
+    List<InterfaceInfoDTO> listInterfaces(User user);
+
+
+    List<InterfaceInfoDTO> searchInterfacesByName(InterfaceInfoDTO interfaceRequest);
 
 }
 

@@ -5,8 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.Data;
+import org.springframework.cglib.core.Local;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * 接口信息
@@ -59,6 +62,7 @@ public class InterfaceInfo implements Serializable {
     /**
      * 创建人
      */
+
     private Long userId;
 
     /**
@@ -70,12 +74,15 @@ public class InterfaceInfo implements Serializable {
      * 更新时间
      */
     private Date updateTime;
+    /**
+     * 总调用次数
+     */
+    private Long invokeTotal;
 
     /**
      * 是否删除(0-未删, 1-已删)
      */
-    @TableField("isDelete")
-    private Integer deleteFlag;
+    private Integer deleted;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

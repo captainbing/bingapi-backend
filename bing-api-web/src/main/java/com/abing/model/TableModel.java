@@ -37,5 +37,5 @@ public class TableModel {
     private List<String> group;
     private List<ConditionModel> having;
     private List<OrderModel> order;
-    private String limit;
+    private PageModel limit;
 }

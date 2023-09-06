@@ -10,19 +10,20 @@
             <result property="userPassword" column="userPassword" jdbcType="VARCHAR"/>
             <result property="unionId" column="unionId" jdbcType="VARCHAR"/>
             <result property="mpOpenId" column="mpOpenId" jdbcType="VARCHAR"/>
-            <result property="username" column="userName" jdbcType="VARCHAR"/>
+            <result property="userName" column="userName" jdbcType="VARCHAR"/>
             <result property="userAvatar" column="userAvatar" jdbcType="VARCHAR"/>
             <result property="userProfile" column="userProfile" jdbcType="VARCHAR"/>
             <result property="userRole" column="userRole" jdbcType="VARCHAR"/>
+            <result property="userStatus" column="userStatus" jdbcType="TINYINT"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
-            <result property="deleteFlag" column="isDelete" jdbcType="TINYINT"/>
+            <result property="deleted" column="deleted" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,userAccount,userPassword,
         unionId,mpOpenId,userName,
-        userAvatar,userProfile,userRole,
-        createTime,updateTime,isDelete
+        userAvatar,userProfile,userRole,userStauts,
+        createTime,updateTime,deleted
     </sql>
 </mapper>

@@ -6,6 +6,7 @@ import com.abing.exception.BusinessException;
 import com.abing.model.domain.User;
 import com.abing.model.enums.UserRoleEnum;
 import com.abing.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -25,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Aspect
 @Component
+@Slf4j
 public class AuthInterceptor {
 
     @Resource

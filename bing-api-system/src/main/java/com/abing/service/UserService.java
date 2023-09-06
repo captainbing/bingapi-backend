@@ -1,8 +1,11 @@
 package com.abing.service;
 
 import com.abing.model.domain.User;
+import com.abing.model.dto.user.ModifyPasswordRequest;
+import com.abing.model.dto.user.SearchUserRequest;
 import com.abing.model.vo.LoginUserVO;
 import com.abing.model.vo.UserVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +17,48 @@ import java.util.List;
 * @createDate 2023-07-20 19:11:19
 */
 public interface UserService extends IService<User> {
+
+
+    /**
+     * 用户使用邮箱登录
+     * @param user
+     * @param request
+     * @return
+     */
+    UserVO userLogin(User user,HttpServletRequest request);
+
+
+    /**
+     * 验证码登录
+     * @param userAccount
+     * @param captcha
+     * @param request
+     * @return
+     */
+    UserVO captchaLogin(String userAccount,String captcha,HttpServletRequest request);
+
+
+    /**
+     * 邮箱注册发送验证码
+     * @param userAccount
+     * @param request
+     * @return
+     */
+    String sendCaptcha(String userAccount,HttpServletRequest request);
+
+    /**
+     * 用户邮箱注册
+     * @param userAccount 账号
+     * @param captcha 验证码
+     * @return
+     */
+    Integer userRegister(String userAccount,String captcha,HttpServletRequest request);
+
+
+
+
+
+
 
     /**
      * 用户注册
@@ -99,4 +144,26 @@ public interface UserService extends IService<User> {
      */
     List<UserVO> getUserVO(List<User> userList);
 
+    /**
+     * 查询用户集合
+     *
+     * @param searchUserRequest
+     * @return
+     */
+    IPage<UserVO> searchUser(SearchUserRequest searchUserRequest);
+
+    /**
+     * 修改用户密码
+     * @param modifyPasswordRequest
+     * @param request
+     * @return
+     */
+    Integer modifyUserPassword(ModifyPasswordRequest modifyPasswordRequest,HttpServletRequest request);
+
+    /**
+     * 根据Id获取用户
+     * @param user
+     * @return
+     */
+    UserVO getUserVOById(User user);
 }

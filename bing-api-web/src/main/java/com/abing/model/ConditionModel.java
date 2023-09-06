@@ -7,6 +7,13 @@ package com.abing.model;
  */
 public class ConditionModel {
     private String field;
+    /**
+     * = , <> , <= , >= , != , in , not in
+     */
     private String condition;
     private String target;
+    /**
+     * and , or
+     */
+    private String nextCondition;
 }

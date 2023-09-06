@@ -1,7 +1,7 @@
 package com.abing.model.vo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -19,6 +19,21 @@ public class UserVO implements Serializable {
      * id
      */
     private Long id;
+
+    /**
+     * 账号
+     */
+    private String userAccount;
+
+    /**
+     * 微信开放平台id
+     */
+    private String unionId;
+
+    /**
+     * 公众号openId
+     */
+    private String mpOpenId;
 
     /**
      * 用户昵称
@@ -44,6 +59,20 @@ public class UserVO implements Serializable {
      * 创建时间
      */
     private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
+
+    /**
+     * 是否删除
+     */
+    @TableField("deleted")
+    private Integer deleted;
+
+
+
 
     private static final long serialVersionUID = 1L;
 }
