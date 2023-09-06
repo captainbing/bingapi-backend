@@ -46,7 +46,7 @@ public class User implements Serializable {
     /**
      * 用户昵称
      */
-    private String username;
+    private String userName;
 
     /**
      * 用户头像
@@ -74,10 +74,15 @@ public class User implements Serializable {
     private Date updateTime;
 
     /**
+     * 用户状态 0 正常 1 BAN
+     */
+    private Integer userStatus;
+
+    /**
      * 是否删除
      */
-    @TableField("isDelete")
-    private Integer deleteFlag;
+    @TableField("deleted")
+    private Integer deleted;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

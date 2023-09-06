@@ -9,11 +9,11 @@
             <result property="content" column="content" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
-            <result property="deleteFlag" column="isDelete" jdbcType="TINYINT"/>
+            <result property="deleted" column="deleted" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,content,createTime,
-        updateTime,isDelete
+        updateTime,deleted
     </sql>
 </mapper>

@@ -27,14 +27,11 @@ public class MailServiceImpl implements MailService {
     @Override
     public String sendMessage(String to) {
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-        //simpleMailMessage.setFrom(MailConstant.from);
         simpleMailMessage.setFrom(FROM);
         simpleMailMessage.setTo(to);
         simpleMailMessage.setSubject("测试邮件");
         //支持解析html标签
         String content = "<h1 style='color:red'>哈哈哈</h1>";
-        //使用工具类发送一个验证码
-//        String captcha = VerifyCodeGenerator.getCaptcha();
         simpleMailMessage.setText(content+"I LOVE YOU FOREVER" + "mail send success");
         javaMailSender.send(simpleMailMessage);
         return "mail send";

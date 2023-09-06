@@ -3,6 +3,7 @@ package com.abing.common;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @Author abing
@@ -12,10 +13,16 @@ import java.io.Serializable;
 @Data
 public class DeleteRequest implements Serializable {
 
+
     /**
      * id
      */
     private Long id;
+    /**
+     * ids
+     */
+    private List<Long> ids;
+
 
     private static final long serialVersionUID = 1L;
 }

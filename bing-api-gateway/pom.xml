@@ -17,6 +17,17 @@
     </properties>
 
     <dependencies>
+
+        <!--   公共jar包    -->
+        <dependency>
+            <artifactId>bing-api-common</artifactId>
+            <groupId>com.abing</groupId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>

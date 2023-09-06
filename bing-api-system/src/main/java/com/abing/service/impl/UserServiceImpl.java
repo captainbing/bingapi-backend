@@ -1,12 +1,20 @@
 package com.abing.service.impl;
 
 import com.abing.common.ErrorCode;
+import com.abing.constant.UserConstant;
 import com.abing.exception.BusinessException;
+import com.abing.model.domain.InterfaceInfo;
+import com.abing.model.dto.user.ModifyPasswordRequest;
+import com.abing.model.dto.user.SearchUserRequest;
 import com.abing.model.enums.UserRoleEnum;
 import com.abing.model.vo.LoginUserVO;
 import com.abing.model.vo.UserVO;
+import com.abing.utils.CaptchaUtil;
+import com.abing.utils.EncryptUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.abing.model.domain.User;
 import com.abing.service.UserService;
@@ -17,8 +25,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,10 +43,111 @@ import static com.abing.constant.UserConstant.USER_LOGIN_STATE;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
+
+
+    @Resource
+    private UserMapper userMapper;
+
+
     /**
-     * 盐值，混淆密码
+     * @param user 用户
+     * @param request
+     * @return
      */
-    private static final String SALT = "abing";
+    @Override
+    public UserVO userLogin(User user, HttpServletRequest request) {
+        String encryptPassword = EncryptUtil.enCryptPasswordMd5(user.getUserPassword());
+        User existUser = userMapper.selectOne(new QueryWrapper<User>()
+                .lambda()
+                .eq(User::getUserAccount, user.getUserAccount())
+                .eq(User::getUserPassword,encryptPassword));
+        if (existUser == null){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"账号或密码错误，请重新输入");
+        }
+        request.getSession().setAttribute(USER_LOGIN_STATE,existUser);
+        return getUserVO(existUser);
+
+    }
+    /**
+     * 邮箱验证码登录
+     * @param userAccount
+     * @param captcha
+     * @return
+     */
+    @Override
+    public UserVO captchaLogin(String userAccount, String captcha,HttpServletRequest request) {
+        String sessionCaptcha = (String)request.getSession().getAttribute(userAccount);
+        if (!captcha.equals(sessionCaptcha)){
+            throw new BusinessException(ErrorCode.SUCCESS,"验证码不正确，请重新输入");
+        }
+        // 邮箱已经存在，直接登录返回当前用户信息
+        User existUser = userMapper.selectOne(new QueryWrapper<User>()
+                .lambda()
+                .eq(User::getUserAccount, userAccount));
+        if (existUser != null){
+            return getUserVO(existUser);
+        }
+        // 不存在当前用户先注册
+        User user = new User();
+        user.setUserAccount(userAccount);
+        user.setUserPassword(EncryptUtil.enCryptPasswordMd5(sessionCaptcha));
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        int count = userMapper.insert(user);
+        if (count == 0){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return getUserVO(user);
+    }
+
+    /**
+     * @param userAccount
+     * @param request
+     * @return
+     */
+    @Override
+    public String sendCaptcha(String userAccount, HttpServletRequest request) {
+
+        User existUser = userMapper.selectOne(new QueryWrapper<User>()
+                .lambda()
+                .eq(User::getUserAccount, userAccount));
+        if (existUser != null){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"邮箱账号已存在");
+        }
+        String captcha = CaptchaUtil.random6Captcha();
+        request.getSession().setAttribute(userAccount,captcha);
+        // TODO  邮箱发送验证码
+        return captcha;
+    }
+
+    /**
+     * 邮箱验证码登录
+     * @param userAccount 账号
+     * @param captcha 验证码
+     * @return
+     */
+    @Override
+    public Integer userRegister(String userAccount,String captcha,HttpServletRequest request) {
+        User existUser = userMapper.selectOne(new QueryWrapper<User>()
+                .lambda()
+                .eq(User::getUserAccount, userAccount));
+        if (existUser != null){
+            throw new BusinessException(ErrorCode.SUCCESS,"账号已存在");
+        }
+        String sessionCaptcha = (String) request.getSession().getAttribute(userAccount);
+        if (sessionCaptcha == null){
+            throw new BusinessException(ErrorCode.SUCCESS,"验证码已失效，请重新获取");
+        }
+        if (!captcha.equals(sessionCaptcha)){
+            throw new BusinessException(ErrorCode.SUCCESS,"验证码错误，请重新输入");
+        }
+        User user = new User();
+        user.setUserAccount(userAccount);
+        String encryptPassword = EncryptUtil.enCryptPasswordMd5(sessionCaptcha);
+        user.setUserPassword(encryptPassword);
+        int count = userMapper.insert(user);
+        return count;
+    }
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -63,7 +174,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
             }
             // 2. 加密
-            String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+            String encryptPassword = DigestUtils.md5DigestAsHex((UserConstant.SALT + userPassword).getBytes());
             // 3. 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
@@ -89,7 +200,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
         // 2. 加密
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        String encryptPassword = DigestUtils.md5DigestAsHex((UserConstant.SALT + userPassword).getBytes());
         // 查询用户是否存在
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("userAccount", userAccount);
@@ -210,7 +321,69 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userList.stream().map(this::getUserVO).collect(Collectors.toList());
     }
 
+    /**
+     * @param searchUserRequest
+     * @return
+     */
+    @Override
+    public IPage<UserVO> searchUser(SearchUserRequest searchUserRequest) {
 
+        IPage<User> page = new Page<>();
+        if (searchUserRequest.getCurrent() != null){
+            page.setCurrent(searchUserRequest.getCurrent());
+        }
+        if (searchUserRequest.getSize() != null){
+            page.setSize(searchUserRequest.getSize());
+        }
+        IPage<User> userPage = userMapper.selectPage(page, new QueryWrapper<User>()
+                .lambda()
+                .like(StringUtils.isNotEmpty(searchUserRequest.getUserName()), User::getUserName, searchUserRequest.getUserName())
+                .eq(StringUtils.isNotEmpty(searchUserRequest.getUserRole()), User::getUserRole, searchUserRequest.getUserRole())
+                .eq(StringUtils.isNotEmpty(searchUserRequest.getUserStatus()), User::getDeleted, searchUserRequest.getUserStatus()));
+        List<UserVO> userVOList = getUserVO(userPage.getRecords());
+        IPage<UserVO> userVOPage = new Page<>();
+        BeanUtils.copyProperties(userPage,userVOPage);
+        userVOPage.setRecords(userVOList);
+        return userVOPage;
+    }
+
+
+    /**
+     * @param modifyPasswordRequest
+     * @return
+     */
+    @Override
+    public Integer modifyUserPassword(ModifyPasswordRequest modifyPasswordRequest,HttpServletRequest request) {
+        String oldPassword = EncryptUtil.enCryptPasswordMd5(modifyPasswordRequest.getOldPassword());
+        User loginUser = getLoginUser(request);
+        User existUser = userMapper.selectOne(new QueryWrapper<User>()
+                .lambda()
+                .eq(User::getUserAccount, loginUser.getUserAccount())
+                .eq(User::getUserPassword, oldPassword));
+        if (existUser == null){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"用户不存在或密码错误");
+        }
+        if (!modifyPasswordRequest.getNewPassword().equals(modifyPasswordRequest.getCheckNewPassword())){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"密码不一致，请稍后再试");
+        }
+        String newPassword = EncryptUtil.enCryptPasswordMd5(modifyPasswordRequest.getCheckNewPassword());
+        loginUser.setUserPassword(newPassword);
+        int count = userMapper.updateById(loginUser);
+        // TODO 发送邮件
+        return count;
+    }
+
+    /**
+     * @param user
+     * @return
+     */
+    @Override
+    public UserVO getUserVOById(User user) {
+        User originUser = userMapper.selectById(user.getId());
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(originUser,userVO);
+        return userVO;
+    }
 }
 
 

@@ -1,5 +1,7 @@
 server:
   port: 8090
+  servlet:
+    context-path: /web
 spring:
   application:
     name: dubbo-apiweb-consumer
@@ -21,4 +23,7 @@ dubbo:
     register: false # true(默认), false:表示服务不注册到注册中心(只订阅,直连服务正常),且dubbo-admin不显示
   consumer:
     check: false # 默认true.服务启动时候检查是否可用,服务不可用时无法启动项目, false则不检查
-
+logging:
+  file:
+    name: myapp.log
+    path: logss
