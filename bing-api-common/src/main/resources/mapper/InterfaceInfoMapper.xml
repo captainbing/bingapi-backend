@@ -53,6 +53,6 @@
         from interface_info i
                  inner join user_interface_info ui on i.id = ui.interfaceInfoId
         where ui.userId = #{userId}
-          and i.name like concat('%', #{name}, '%')
+          and i.name like '%${name}%'
     </select>
 </mapper>

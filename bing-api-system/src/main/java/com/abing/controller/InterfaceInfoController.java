@@ -51,8 +51,8 @@ public class InterfaceInfoController {
         return ResultUtils.success(interfaceInfoService.save(interfaceInfo));
     }
 
-    @GetMapping("/list")
-    public BaseResponse<IPage<InterfaceInfo>> listInterfaceInfo(SearchInterfaceRequest searchInterfaceRequest){
+    @PostMapping("/list")
+    public BaseResponse<IPage<InterfaceInfo>> searchOrListInterface(@RequestBody SearchInterfaceRequest searchInterfaceRequest){
         return ResultUtils.success(interfaceInfoService.searchInterface(searchInterfaceRequest));
     }
 

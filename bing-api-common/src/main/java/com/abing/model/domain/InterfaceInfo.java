@@ -82,6 +82,7 @@ public class InterfaceInfo implements Serializable {
     /**
      * 是否删除(0-未删, 1-已删)
      */
+    @TableField
     private Integer deleted;
 
     @TableField(exist = false)

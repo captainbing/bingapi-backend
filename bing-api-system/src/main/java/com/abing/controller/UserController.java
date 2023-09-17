@@ -115,8 +115,8 @@ public class UserController {
         return ResultUtils.success(userService.getUserVOById(user));
     }
 
-    @GetMapping("/list")
-    public BaseResponse<IPage<UserVO>> listUser(SearchUserRequest searchUserRequest) {
+    @PostMapping("/list")
+    public BaseResponse<IPage<UserVO>> listUser(@RequestBody SearchUserRequest searchUserRequest) {
         return ResultUtils.success(userService.searchUser(searchUserRequest));
     }
 

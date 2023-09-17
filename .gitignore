@@ -1,1 +1,5 @@
 /.idea/
+/bing-api-system/target/
+/bing-api-common/target/
+/bing-api-gateway/target/
+/bing-api-web/target/

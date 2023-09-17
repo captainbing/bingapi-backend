@@ -1,9 +1,6 @@
 package com.abing.model.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -64,6 +61,11 @@ public class User implements Serializable {
     private String userRole;
 
     /**
+     * 用户状态 0 正常  1BAN
+     */
+    private Integer userStatus;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -73,15 +75,11 @@ public class User implements Serializable {
      */
     private Date updateTime;
 
-    /**
-     * 用户状态 0 正常 1 BAN
-     */
-    private Integer userStatus;
 
     /**
      * 是否删除
      */
-    @TableField("deleted")
+    @TableLogic
     private Integer deleted;
 
     @TableField(exist = false)

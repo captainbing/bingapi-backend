@@ -1,5 +1,6 @@
 package com.abing;
 
+import com.github.xiaoymin.knife4j.spring.annotations.EnableKnife4j;
 import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @MapperScan("com.abing.mapper")
 @EnableDubbo(scanBasePackages = {"com.abing.service.impl"})
 @EnableDiscoveryClient
+@EnableKnife4j
 public class SystemApplication {
 
     public static void main(String[] args) {

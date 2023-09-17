@@ -55,6 +55,12 @@ public class UserVO implements Serializable {
      */
     private String userRole;
 
+
+    /**
+     * 用户状态 0 正常  1BAN
+     */
+    private Integer userStatus;
+
     /**
      * 创建时间
      */
