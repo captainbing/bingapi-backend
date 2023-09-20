@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.abing.mapper.DictDataMapper">
+
+    <resultMap id="BaseResultMap" type="com.abing.model.domain.DictData">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="dictLabel" column="dictLabel" jdbcType="VARCHAR"/>
+            <result property="dictValue" column="dictValue" jdbcType="VARCHAR"/>
+            <result property="dictType" column="dictType" jdbcType="VARCHAR"/>
+            <result property="defaultFlag" column="defaultFlag" jdbcType="CHAR"/>
+            <result property="status" column="status" jdbcType="CHAR"/>
+            <result property="dictSort" column="dictSort" jdbcType="INTEGER"/>
+            <result property="createBy" column="createBy" jdbcType="VARCHAR"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateBy" column="updateBy" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,dictLabel,dictValue,
+        dictType,defaultFlag,status,
+        dictSort,createBy,createTime,
+        updateBy,updateTime,remark
+    </sql>
+</mapper>
