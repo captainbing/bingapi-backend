@@ -53,6 +53,10 @@ spring:
     date-format: yyyy-MM-dd HH:mm:ss
 #    date-format: yyyy-MM-dd
     time-zone: GMT+8 # 时区修改为东8区
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never # always m默认每次都会新建表
 server:
 #  servlet:
 #    context-path: /backend

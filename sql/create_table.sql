@@ -30,6 +30,52 @@ CREATE TABLE `dict_data`
 ) COMMENT ='字典数据表';
 
 
+CREATE TABLE `sys_config`
+(
+    `id`          int(5) NOT NULL AUTO_INCREMENT COMMENT '参数主键',
+    `configKey`   varchar(100) DEFAULT '' COMMENT '参数键名',
+    `configValue` text COMMENT '参数键值',
+    `configType`  char(1)      DEFAULT 'N' COMMENT '系统内置（Y是 N否）',
+    `createBy`    varchar(64)  DEFAULT '' COMMENT '创建者',
+    `createTime`  datetime     DEFAULT NULL COMMENT '创建时间',
+    `updateBy`    varchar(64)  DEFAULT '' COMMENT '更新者',
+    `updateTime`  datetime     DEFAULT NULL COMMENT '更新时间',
+    `remark`      varchar(500) DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`id`)
+) COMMENT ='参数配置表';
+
+CREATE TABLE `sys_job`
+(
+    `id`             bigint(20)   NOT NULL AUTO_INCREMENT COMMENT '任务ID',
+    `jobName`        varchar(64)  NOT NULL DEFAULT '' COMMENT '任务名称',
+    `jobGroup`       varchar(64)  NOT NULL DEFAULT 'DEFAULT' COMMENT '任务分组(DEFAULT,SYSTEM)',
+    `invokeTarget`   varchar(500) NOT NULL COMMENT '调用方法',
+    `cronExpression` varchar(255)          DEFAULT '' COMMENT 'cron执行表达式',
+    `misfirePolicy`  tinyint               DEFAULT 3 COMMENT '计划执行错误策略（1立即执行 2执行一次 3放弃执行）',
+    `concurrent`     tinyint               DEFAULT 1 COMMENT '是否并发执行（0允许 1禁止）',
+    `status`         tinyint               DEFAULT 0 COMMENT '状态（0正常 1暂停）',
+    `createBy`       varchar(64)           DEFAULT '' COMMENT '创建人',
+    `createTime`     datetime              DEFAULT NULL COMMENT '创建时间',
+    `updateBy`       varchar(64)           DEFAULT '' COMMENT '更新人',
+    `updateTime`     datetime              DEFAULT NULL COMMENT '更新时间',
+    `remark`         varchar(500)          DEFAULT '' COMMENT '备注信息',
+    PRIMARY KEY (`id`)
+) COMMENT ='定时任务调度表';
+
+
+CREATE TABLE `sys_job_log`
+(
+    `id`           bigint       NOT NULL AUTO_INCREMENT COMMENT '任务日志ID',
+    `jobId`        bigint       NOT NULL COMMENT '任务ID',
+    `jobName`      varchar(64)  NOT NULL COMMENT '任务名称',
+    `jobGroup`     varchar(64)  NOT NULL COMMENT '任务组名',
+    `invokeTarget` varchar(500) NOT NULL COMMENT '调用目标字符串',
+    `job_message`  varchar(500) DEFAULT NULL COMMENT '日志信息',
+    `status`       tinyint      DEFAULT 0 COMMENT '执行状态（0正常 1失败）',
+    `createTime`   datetime     DEFAULT NULL COMMENT '创建时间',
+    PRIMARY KEY (`id`)
+) COMMENT ='定时任务调度日志表';
+
 -- 接口信息
 create table if not exists `interface_info`
 (

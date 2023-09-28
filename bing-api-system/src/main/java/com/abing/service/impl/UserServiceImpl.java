@@ -3,14 +3,13 @@ package com.abing.service.impl;
 import com.abing.common.ErrorCode;
 import com.abing.constant.UserConstant;
 import com.abing.exception.BusinessException;
-import com.abing.model.domain.InterfaceInfo;
 import com.abing.model.dto.user.ModifyPasswordRequest;
 import com.abing.model.dto.user.SearchUserRequest;
 import com.abing.model.enums.UserRoleEnum;
 import com.abing.model.vo.LoginUserVO;
 import com.abing.model.vo.UserVO;
-import com.abing.utils.CaptchaUtil;
-import com.abing.utils.EncryptUtil;
+import com.abing.utils.CaptchaUtils;
+import com.abing.utils.EncryptUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -56,7 +55,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public UserVO userLogin(User user, HttpServletRequest request) {
-        String encryptPassword = EncryptUtil.enCryptPasswordMd5(user.getUserPassword());
+        String encryptPassword = EncryptUtils.enCryptPasswordMd5(user.getUserPassword());
         User existUser = userMapper.selectOne(new QueryWrapper<User>()
                 .lambda()
                 .eq(User::getUserAccount, user.getUserAccount())
@@ -90,7 +89,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 不存在当前用户先注册
         User user = new User();
         user.setUserAccount(userAccount);
-        user.setUserPassword(EncryptUtil.enCryptPasswordMd5(sessionCaptcha));
+        user.setUserPassword(EncryptUtils.enCryptPasswordMd5(sessionCaptcha));
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         int count = userMapper.insert(user);
@@ -114,7 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (existUser != null){
             throw new BusinessException(ErrorCode.OPERATION_ERROR,"邮箱账号已存在");
         }
-        String captcha = CaptchaUtil.random6Captcha();
+        String captcha = CaptchaUtils.random6Captcha();
         request.getSession().setAttribute(userAccount,captcha);
         // TODO  邮箱发送验证码
         return captcha;
@@ -143,7 +142,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         User user = new User();
         user.setUserAccount(userAccount);
-        String encryptPassword = EncryptUtil.enCryptPasswordMd5(sessionCaptcha);
+        String encryptPassword = EncryptUtils.enCryptPasswordMd5(sessionCaptcha);
         user.setUserPassword(encryptPassword);
         int count = userMapper.insert(user);
         return count;
@@ -339,7 +338,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 .lambda()
                 .like(StringUtils.isNotEmpty(searchUserRequest.getUserName()), User::getUserName, searchUserRequest.getUserName())
                 .eq(StringUtils.isNotEmpty(searchUserRequest.getUserRole()), User::getUserRole, searchUserRequest.getUserRole())
-                .eq(StringUtils.isNotEmpty(searchUserRequest.getUserStatus()), User::getDeleted, searchUserRequest.getUserStatus()));
+                .eq(StringUtils.isNotEmpty(searchUserRequest.getUserStatus()), User::getUserStatus, searchUserRequest.getUserStatus()));
         List<UserVO> userVOList = getUserVO(userPage.getRecords());
         IPage<UserVO> userVOPage = new Page<>();
         BeanUtils.copyProperties(userPage,userVOPage);
@@ -354,7 +353,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public Integer modifyUserPassword(ModifyPasswordRequest modifyPasswordRequest,HttpServletRequest request) {
-        String oldPassword = EncryptUtil.enCryptPasswordMd5(modifyPasswordRequest.getOldPassword());
+        String oldPassword = EncryptUtils.enCryptPasswordMd5(modifyPasswordRequest.getOldPassword());
         User loginUser = getLoginUser(request);
         User existUser = userMapper.selectOne(new QueryWrapper<User>()
                 .lambda()
@@ -366,7 +365,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (!modifyPasswordRequest.getNewPassword().equals(modifyPasswordRequest.getCheckNewPassword())){
             throw new BusinessException(ErrorCode.OPERATION_ERROR,"密码不一致，请稍后再试");
         }
-        String newPassword = EncryptUtil.enCryptPasswordMd5(modifyPasswordRequest.getCheckNewPassword());
+        String newPassword = EncryptUtils.enCryptPasswordMd5(modifyPasswordRequest.getCheckNewPassword());
         loginUser.setUserPassword(newPassword);
         int count = userMapper.updateById(loginUser);
         // TODO 发送邮件

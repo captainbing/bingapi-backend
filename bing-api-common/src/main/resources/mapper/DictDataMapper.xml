@@ -25,4 +25,5 @@
         dictSort,createBy,createTime,
         updateBy,updateTime,remark
     </sql>
+
 </mapper>

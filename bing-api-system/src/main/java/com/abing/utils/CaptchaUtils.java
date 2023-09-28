@@ -7,9 +7,9 @@ import java.util.Random;
  * @Date 2023/8/12 16:59
  * @Description
  */
-public class CaptchaUtil {
+public class CaptchaUtils {
 
-    private CaptchaUtil(){}
+    private CaptchaUtils(){}
 
     public static Random random = new Random();
 

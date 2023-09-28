@@ -31,12 +31,6 @@ public class InterfaceInfoController {
     @Resource
     private InterfaceInfoService interfaceInfoService;
 
-    @Resource
-    private UserInterfaceInfoService userInterfaceInfoService;
-
-    @Resource
-    private InvokeService invokeService;
-
     @GetMapping("/get/{id}")
     public BaseResponse<InterfaceInfo> getInterfaceInfo(@PathVariable Integer id){
         return ResultUtils.success(interfaceInfoService.getById(id));

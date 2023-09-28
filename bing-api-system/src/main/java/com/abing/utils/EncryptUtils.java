@@ -8,9 +8,9 @@ import org.springframework.util.DigestUtils;
  * @Date 2023/8/12 17:26
  * @Description
  */
-public class EncryptUtil {
+public class EncryptUtils {
 
-    private EncryptUtil(){}
+    private EncryptUtils(){}
     /**
      * MD5加密密码
      * @param password

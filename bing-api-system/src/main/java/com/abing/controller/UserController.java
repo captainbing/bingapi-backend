@@ -32,8 +32,6 @@ import javax.servlet.http.HttpSession;
 public class UserController {
     @Resource
     private UserService userService;
-    @Resource
-    private MailService mailService;
 
     @GetMapping("/login")
     public BaseResponse<UserVO> userLogin(User user, HttpServletRequest request) {
