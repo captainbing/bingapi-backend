@@ -2,6 +2,10 @@ package com.abing.service;
 
 import com.abing.model.dto.search.QQRequest;
 import com.abing.model.request.InvokeRequest;
+import com.abing.model.vo.InvokeMenuVO;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @Author CaptainBing
@@ -23,4 +27,18 @@ public interface InvokeService {
      * @return
      */
     String fetchQQAvatar(QQRequest qqRequest);
+
+    /**
+     * 获取树形目录结构
+     * @return
+     */
+    List<InvokeMenuVO> getInvokeMenuTree(HttpServletRequest request);
+
+    /**
+     * 添加菜单目录
+     * @param request
+     * @param title
+     * @return
+     */
+    Boolean addMenu(HttpServletRequest request,String title);
 }

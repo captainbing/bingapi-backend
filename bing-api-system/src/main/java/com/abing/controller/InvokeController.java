@@ -7,12 +7,18 @@ import com.abing.common.ResultUtils;
 import com.abing.exception.BusinessException;
 import com.abing.model.dto.search.QQRequest;
 import com.abing.model.request.InvokeRequest;
+import com.abing.model.vo.InvokeMenuVO;
+import com.abing.service.InvokeInterfaceService;
 import com.abing.service.InvokeService;
+import com.abing.utils.ThrowUtils;
+import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Http;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @Author CaptainBing
@@ -25,6 +31,9 @@ public class InvokeController {
     @Resource
     private InvokeService invokeService;
 
+    @Resource
+    private InvokeInterfaceService invokeInterfaceService;
+
     @PostMapping("/another")
     public BaseResponse<InvokeRequest> invokeAnotherInterface(@RequestBody InvokeRequest invokeRequest){
         if (StringUtils.isEmpty(invokeRequest.getUrl())){
@@ -32,6 +41,28 @@ public class InvokeController {
         }
         // TODO 参数校验
         return ResultUtils.success(invokeService.invokeAnotherInterface(invokeRequest));
+    }
+
+
+    @GetMapping ("/menu/get")
+    public BaseResponse<List<InvokeMenuVO>> getMenuTree(HttpServletRequest request){
+        // TODO 参数校验
+        return ResultUtils.success(invokeService.getInvokeMenuTree(request));
+
+    }
+
+    @GetMapping ("/menu/add")
+    public BaseResponse<Boolean> addMenu(HttpServletRequest request,String title){
+        ThrowUtils.throwIf(StringUtils.isEmpty(title),ErrorCode.PARAMS_ERROR);
+        return ResultUtils.success(invokeService.addMenu(request,title));
+
+    }
+
+    @GetMapping ("/menu/delete")
+    public BaseResponse<Boolean> deleteMenu(HttpServletRequest request,String id){
+        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
+        return ResultUtils.success(invokeInterfaceService.deleteMenu(request,id));
+
     }
 
     @GetMapping("/qq")

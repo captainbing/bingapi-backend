@@ -44,6 +44,32 @@ CREATE TABLE `sys_config`
     PRIMARY KEY (`id`)
 ) COMMENT ='参数配置表';
 
+CREATE TABLE `invoke_interface`
+(
+    `id`                int(5) NOT NULL AUTO_INCREMENT COMMENT 'invokeId',
+    `parentId`          int(5) DEFAULT 0 COMMENT 'parentId',
+    `url`               varchar(512) COMMENT '请求路径',
+    `requestParams`     varchar(512)     DEFAULT '' COMMENT '请求参数',
+    `requestHeaders`    varchar(512)  DEFAULT '' COMMENT '请求头',
+    `requestBody`       varchar(512)  DEFAULT '' COMMENT '请求体',
+    `responseHeaders`   varchar(512)  DEFAULT '' COMMENT '响应头',
+    `responseBody`      varchar(512)  DEFAULT '' COMMENT '响应体',
+    `createTime`        datetime     DEFAULT NULL COMMENT '创建时间',
+    `updateBy`          varchar(64)  DEFAULT '' COMMENT '更新者',
+    `updateTime`        datetime     DEFAULT NULL COMMENT '更新时间',
+    `remark`            varchar(500) DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`id`)
+) COMMENT ='接口调用表（仿postman）';
+
+
+CREATE TABLE `user_invoke_interface`
+(
+    `id`                varchar(512) NOT NULL  COMMENT '主键',
+    `userId`            varchar(512) NOT NULL  COMMENT '用户ID',
+    `invokeId`          varchar(512) NOT NULL COMMENT '调用接口记录ID',
+    PRIMARY KEY (`id`)
+) COMMENT ='用户接口记录关系表（接口调用）';
+
 CREATE TABLE `sys_job`
 (
     `id`             bigint(20)   NOT NULL AUTO_INCREMENT COMMENT '任务ID',

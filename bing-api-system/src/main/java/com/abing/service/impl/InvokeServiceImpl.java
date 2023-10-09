@@ -5,15 +5,30 @@ import cn.hutool.http.Method;
 import com.abing.common.ErrorCode;
 import com.abing.constant.SearchConstant;
 import com.abing.exception.BusinessException;
+import com.abing.model.domain.InvokeInterface;
+import com.abing.model.domain.User;
+import com.abing.model.domain.UserInvokeInterface;
 import com.abing.model.dto.search.QQRequest;
 import com.abing.model.enums.AvatarSizeEnum;
 import com.abing.model.enums.RequestMethodEnum;
 import com.abing.model.request.InvokeRequest;
+import com.abing.model.vo.InvokeMenuVO;
+import com.abing.service.InvokeInterfaceService;
 import com.abing.service.InvokeService;
+import com.abing.service.UserInvokeInterfaceService;
+import com.abing.service.UserService;
+import com.abing.utils.ThrowUtils;
+import com.abing.utils.UUIDUtils;
 import com.google.gson.Gson;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.Map;
+import java.util.Observable;
+import java.util.stream.Collectors;
 
 import static com.abing.model.enums.AvatarSizeEnum.*;
 
@@ -24,6 +39,15 @@ import static com.abing.model.enums.AvatarSizeEnum.*;
  */
 @Service
 public class InvokeServiceImpl implements InvokeService {
+
+    @Resource
+    private InvokeInterfaceService invokeInterfaceService;
+
+    @Resource
+    private UserInvokeInterfaceService userInvokeInterfaceService;
+    
+    @Resource
+    private UserService userService;
 
     /**
      * @param invokeRequest TODO GET POST
@@ -92,5 +116,50 @@ public class InvokeServiceImpl implements InvokeService {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         return String.format(SearchConstant.QQ_AVATAR_URL, qq,size);
+    }
+
+    @Override
+    public List<InvokeMenuVO> getInvokeMenuTree(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        // TODO 跟用户ID绑定
+        List<InvokeInterface> source = invokeInterfaceService.listInvokeMenu(loginUser);
+        ThrowUtils.throwIf(source == null,ErrorCode.OPERATION_ERROR);
+        List<InvokeMenuVO> invokeMenuVOList = source.stream().map(item -> {
+            InvokeMenuVO invokeMenuVO = new InvokeMenuVO();
+            invokeMenuVO.setTitle(item.getTitle());
+            invokeMenuVO.setKey(item.getId());
+            invokeMenuVO.setParentId(item.getParentId());
+            invokeMenuVO.setIsLeaf("F".equals(item.getType()));
+            return invokeMenuVO;
+        }).collect(Collectors.toList());
+
+
+        Map<Integer, List<InvokeMenuVO>> parentIdMap = invokeMenuVOList.stream()
+                .collect(Collectors.groupingBy(InvokeMenuVO::getParentId));
+        invokeMenuVOList.forEach(menu->{
+            menu.setChildren(parentIdMap.get(menu.getKey()));
+        });
+        invokeMenuVOList = invokeMenuVOList.stream()
+                .filter(menu->menu.getParentId() == 0)
+                .collect(Collectors.toList());
+        return invokeMenuVOList;
+    }
+
+    @Override
+    @Transactional
+    public Boolean addMenu(HttpServletRequest request,String title) {
+
+        User loginUser = userService.getLoginUser(request);
+        String ID = UUIDUtils.simpleID();
+        UserInvokeInterface userInvokeInterface = new UserInvokeInterface();
+        userInvokeInterface.setInvokeId(ID);
+        userInvokeInterface.setUserId(loginUser.getId());
+
+        InvokeInterface invokeInterface = new InvokeInterface();
+        invokeInterface.setId(ID);
+        invokeInterface.setTitle(title);
+        invokeInterface.setParentId(0);
+        invokeInterface.setType("M");
+        return userInvokeInterfaceService.save(userInvokeInterface) && invokeInterfaceService.save(invokeInterface);
     }
 }

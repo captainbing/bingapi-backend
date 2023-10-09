@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.abing.mapper.InvokeInterfaceMapper">
+
+    <resultMap id="BaseResultMap" type="com.abing.model.domain.InvokeInterface">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="parentId" column="parentId" jdbcType="INTEGER"/>
+            <result property="url" column="url" jdbcType="VARCHAR"/>
+            <result property="requestParams" column="requestParams" jdbcType="VARCHAR"/>
+            <result property="requestHeaders" column="requestHeaders" jdbcType="VARCHAR"/>
+            <result property="requestBody" column="requestBody" jdbcType="VARCHAR"/>
+            <result property="responseHeaders" column="responseHeaders" jdbcType="VARCHAR"/>
+            <result property="responseBody" column="responseBody" jdbcType="VARCHAR"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateBy" column="updateBy" jdbcType="VARCHAR"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="remark" column="remark" jdbcType="VARCHAR"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,parentId,url,
+        requestParams,requestHeaders,requestBody,
+        responseHeaders,responseBody,createTime,
+        updateBy,updateTime,remark,
+        title
+    </sql>
+
+    <select id="listInvokeMenu" resultMap="BaseResultMap">
+        select i.* from user_invoke_interface ui
+            join invoke_interface i on ui.invokeId = i.id where ui.userId = #{userId}
+    </select>
+</mapper>
