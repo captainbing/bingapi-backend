@@ -1,6 +1,5 @@
 package com.abing.controller;
 
-import cn.hutool.http.HttpRequest;
 import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
@@ -8,10 +7,9 @@ import com.abing.exception.BusinessException;
 import com.abing.model.dto.search.QQRequest;
 import com.abing.model.request.InvokeRequest;
 import com.abing.model.vo.InvokeMenuVO;
-import com.abing.service.InvokeInterfaceService;
+import com.abing.service.InvokeRecordService;
 import com.abing.service.InvokeService;
 import com.abing.utils.ThrowUtils;
-import com.alibaba.nacos.api.naming.pojo.healthcheck.impl.Http;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +25,12 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/invoke")
-public class InvokeController {
+public class InvokeRecordController {
     @Resource
     private InvokeService invokeService;
 
     @Resource
-    private InvokeInterfaceService invokeInterfaceService;
+    private InvokeRecordService invokeRecordService;
 
     @PostMapping("/another")
     public BaseResponse<InvokeRequest> invokeAnotherInterface(@RequestBody InvokeRequest invokeRequest){
@@ -47,21 +45,28 @@ public class InvokeController {
     @GetMapping ("/menu/get")
     public BaseResponse<List<InvokeMenuVO>> getMenuTree(HttpServletRequest request){
         // TODO 参数校验
-        return ResultUtils.success(invokeService.getInvokeMenuTree(request));
+        return ResultUtils.success(invokeRecordService.getInvokeMenuTree(request));
 
     }
 
     @GetMapping ("/menu/add")
-    public BaseResponse<Boolean> addMenu(HttpServletRequest request,String title){
+    public BaseResponse<Boolean> addMenu(HttpServletRequest request,String title,String parentId){
         ThrowUtils.throwIf(StringUtils.isEmpty(title),ErrorCode.PARAMS_ERROR);
-        return ResultUtils.success(invokeService.addMenu(request,title));
+        return ResultUtils.success(invokeRecordService.addMenu(request,title,parentId));
 
     }
 
     @GetMapping ("/menu/delete")
     public BaseResponse<Boolean> deleteMenu(HttpServletRequest request,String id){
         ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
-        return ResultUtils.success(invokeInterfaceService.deleteMenu(request,id));
+        return ResultUtils.success(invokeRecordService.deleteMenu(request,id));
+
+    }
+
+    @GetMapping ("/menu/select")
+    public BaseResponse selectMenu(String id){
+        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
+        return ResultUtils.success(invokeRecordService.selectMenu(id));
 
     }
 
@@ -70,7 +75,6 @@ public class InvokeController {
         if (StringUtils.isEmpty(qqRequest.getQq())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-
         return ResultUtils.success(invokeService.fetchQQAvatar(qqRequest));
     }
 

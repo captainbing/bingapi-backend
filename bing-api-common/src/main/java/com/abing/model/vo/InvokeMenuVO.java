@@ -13,11 +13,19 @@ import java.util.List;
 @Data
 public class InvokeMenuVO {
 
+    /**
+     * 接口目录
+     */
     private String title;
+
+    /**
+     * 添加菜单的值
+     */
+    private String value;
 
     private String key;
 
-    private Integer parentId;
+    private String parentId;
 
     private Boolean isLeaf;
 

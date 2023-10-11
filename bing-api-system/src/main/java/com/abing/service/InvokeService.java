@@ -28,17 +28,4 @@ public interface InvokeService {
      */
     String fetchQQAvatar(QQRequest qqRequest);
 
-    /**
-     * 获取树形目录结构
-     * @return
-     */
-    List<InvokeMenuVO> getInvokeMenuTree(HttpServletRequest request);
-
-    /**
-     * 添加菜单目录
-     * @param request
-     * @param title
-     * @return
-     */
-    Boolean addMenu(HttpServletRequest request,String title);
 }

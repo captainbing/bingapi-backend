@@ -12,9 +12,9 @@ import lombok.Data;
  * 接口调用表（仿postman）
  * @TableName invoke_interface
  */
-@TableName(value ="invoke_interface")
+@TableName(value ="invoke_record")
 @Data
-public class InvokeInterface implements Serializable {
+public class InvokeRecord implements Serializable {
     /**
      * invokeId
      */
@@ -24,7 +24,12 @@ public class InvokeInterface implements Serializable {
     /**
      * parentId
      */
-    private Integer parentId;
+    private String parentId;
+
+    /**
+     * 用户ID
+     */
+    private String userId;
 
     /**
      * 请求路径

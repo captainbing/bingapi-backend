@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.abing.mapper.InvokeInterfaceMapper">
 
-    <resultMap id="BaseResultMap" type="com.abing.model.domain.InvokeInterface">
+    <resultMap id="BaseResultMap" type="com.abing.model.domain.InvokeRecord">
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="parentId" column="parentId" jdbcType="INTEGER"/>
             <result property="url" column="url" jdbcType="VARCHAR"/>
@@ -32,4 +32,5 @@
         select i.* from user_invoke_interface ui
             join invoke_interface i on ui.invokeId = i.id where ui.userId = #{userId}
     </select>
+
 </mapper>
