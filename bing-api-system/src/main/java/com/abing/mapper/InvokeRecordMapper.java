@@ -12,14 +12,8 @@ import java.util.List;
 * @createDate 2023-10-07 22:17:39
 * @Entity com.abing.model.domain.InvokeInterface
 */
-public interface InvokeInterfaceMapper extends BaseMapper<InvokeRecord> {
+public interface InvokeRecordMapper extends BaseMapper<InvokeRecord> {
 
-    /**
-     * 查询当前用户的调用接口记录目录
-     * @param id
-     * @return
-     */
-    List<InvokeRecord> listInvokeMenu(@Param("userId") String id);
 }
 
 

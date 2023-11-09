@@ -4,14 +4,18 @@ import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
 import com.abing.exception.BusinessException;
+import com.abing.model.domain.InvokeRecord;
 import com.abing.model.dto.search.QQRequest;
+import com.abing.model.request.InvokeRecordRequest;
 import com.abing.model.request.InvokeRequest;
 import com.abing.model.vo.InvokeMenuVO;
+import com.abing.model.vo.InvokeRecordVO;
 import com.abing.service.InvokeRecordService;
 import com.abing.service.InvokeService;
 import com.abing.utils.ThrowUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Connection;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -34,61 +38,55 @@ public class InvokeRecordController {
 
     @PostMapping("/another")
     public BaseResponse<InvokeRequest> invokeAnotherInterface(@RequestBody InvokeRequest invokeRequest){
-        if (StringUtils.isEmpty(invokeRequest.getUrl())){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        // TODO 参数校验
         return ResultUtils.success(invokeService.invokeAnotherInterface(invokeRequest));
     }
 
+    @PostMapping("/record/add")
+    public BaseResponse<Boolean> addInterfaceRecord(@RequestBody InvokeRecordRequest invokeRecordRequest){
+        return ResultUtils.success(invokeRecordService.saveInvokeRecord(invokeRecordRequest));
+    }
+
+    @GetMapping("/record/get")
+    public BaseResponse<InvokeRecordVO> getInvokeRecordById(@RequestParam(value = "id",required = false) String id){
+        return ResultUtils.success(invokeRecordService.getInvokeRecordById(id));
+    }
+
+
 
     @GetMapping ("/menu/get")
-    public BaseResponse<List<InvokeMenuVO>> getMenuTree(HttpServletRequest request){
+    public BaseResponse<List<InvokeMenuVO>> listMenuTree(){
         // TODO 参数校验
-        return ResultUtils.success(invokeRecordService.getInvokeMenuTree(request));
+        return ResultUtils.success(invokeRecordService.getInvokeMenuTree());
 
     }
 
-    @GetMapping ("/menu/add")
-    public BaseResponse<Boolean> addMenu(HttpServletRequest request,String title,String parentId){
-        ThrowUtils.throwIf(StringUtils.isEmpty(title),ErrorCode.PARAMS_ERROR);
-        return ResultUtils.success(invokeRecordService.addMenu(request,title,parentId));
+    @PostMapping ("/menu/add")
+    public BaseResponse<Boolean> addMenu(@RequestBody InvokeRecord invokeRecord){
+        return ResultUtils.success(invokeRecordService.addMenu(invokeRecord));
 
     }
 
     @GetMapping ("/menu/delete")
-    public BaseResponse<Boolean> deleteMenu(HttpServletRequest request,String id){
-        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
-        return ResultUtils.success(invokeRecordService.deleteMenu(request,id));
+    public BaseResponse<Boolean> deleteMenu(@RequestParam("id") String id){
+        return ResultUtils.success(invokeRecordService.deleteMenu(id));
 
     }
 
+    @PostMapping ("/menu/edit")
+    public BaseResponse<Boolean> editMenu(@RequestBody InvokeRecord invokeRecord){
+        ThrowUtils.throwIf(StringUtils.isEmpty(invokeRecord.getId()),ErrorCode.PARAMS_ERROR);
+        return ResultUtils.success(invokeRecordService.editMenu(invokeRecord));
+    }
+
     @GetMapping ("/menu/select")
-    public BaseResponse selectMenu(String id){
-        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
+    public BaseResponse<List<InvokeMenuVO>> selectMenu(String id){
         return ResultUtils.success(invokeRecordService.selectMenu(id));
 
     }
 
     @GetMapping("/qq")
     public BaseResponse<String> getQQImage(QQRequest qqRequest){
-        if (StringUtils.isEmpty(qqRequest.getQq())){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
         return ResultUtils.success(invokeService.fetchQQAvatar(qqRequest));
     }
 
-    @PostMapping("/post")
-    public BaseResponse<String> testPost(@RequestBody TestPost testPost){
-        if (StringUtils.isAnyEmpty(testPost.getKey1(),testPost.getKey2())){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        return ResultUtils.success("test invoke post " + testPost.getKey1() + testPost.getKey2());
-    }
-
-}
-@Data
-class TestPost{
-    String key1;
-    String key2;
 }

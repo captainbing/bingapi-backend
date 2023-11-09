@@ -56,9 +56,9 @@ public class DictDataController {
         ThrowUtils.throwIf(
                 StringUtils.isAnyEmpty(dictData.getDictType(), dictData.getDictLabel(), dictData.getDictLabel()),
                 ErrorCode.PARAMS_ERROR);
-        dictData.setCreateBy(TokenUtils.getLoginUserName());
+        dictData.setCreateBy(TokenUtils.getUserName());
         dictData.setCreateTime(new Date());
-        dictData.setUpdateBy(TokenUtils.getLoginUserName());
+        dictData.setUpdateBy(TokenUtils.getUserName());
         dictData.setUpdateTime(new Date());
         return ResultUtils.success(dictDataService.save(dictData));
     }

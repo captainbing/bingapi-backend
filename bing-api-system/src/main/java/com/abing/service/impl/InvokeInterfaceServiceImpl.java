@@ -1,23 +1,28 @@
 package com.abing.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import com.abing.common.ErrorCode;
-import com.abing.mapper.InvokeInterfaceMapper;
+import com.abing.exception.BusinessException;
+import com.abing.mapper.InvokeRecordMapper;
 import com.abing.model.domain.InvokeRecord;
-import com.abing.model.domain.User;
-import com.abing.model.domain.UserInvokeInterface;
+import com.abing.model.enums.ResourceTypeEnum;
+import com.abing.model.request.InvokeRecordRequest;
+import com.abing.model.request.RequestField;
 import com.abing.model.vo.InvokeMenuVO;
+import com.abing.model.vo.InvokeRecordVO;
 import com.abing.service.InvokeRecordService;
-import com.abing.service.UserInvokeInterfaceService;
-import com.abing.service.UserService;
 import com.abing.utils.ThrowUtils;
-import com.abing.utils.UUIDUtils;
+import com.abing.utils.TokenUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,54 +33,57 @@ import java.util.stream.Collectors;
 * @createDate 2023-10-07 22:17:39
 */
 @Service
-public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeInterfaceMapper, InvokeRecord>
+public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, InvokeRecord>
     implements InvokeRecordService {
 
     @Resource
-    private InvokeInterfaceMapper invokeInterfaceMapper;
+    private InvokeRecordMapper invokeRecordMapper;
 
-    @Resource
-    private UserInvokeInterfaceService userInvokeInterfaceService;
 
-    @Resource
-    private UserService userService;
 
     @Override
-    public List<InvokeRecord> listInvokeMenu(String id) {
-        return invokeInterfaceMapper.listInvokeMenu(id);
-    }
-
-    @Override
-    public Boolean deleteMenu(HttpServletRequest request,String id) {
-        User loginUser = userService.getLoginUser(request);
-        String userId = loginUser.getId();
-
-        boolean userInvokeInterface = userInvokeInterfaceService.remove(new QueryWrapper<UserInvokeInterface>()
+    public Boolean deleteMenu(String id) {
+        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
+        InvokeRecord invokeRecord = this.getById(id);
+        ThrowUtils.throwIf(invokeRecord == null,ErrorCode.OPERATION_ERROR,"删除项不存在");
+        if (invokeRecord.getType().equals(ResourceTypeEnum.FILE.getCode())){
+            return this.removeById(id);
+        }
+        List<InvokeRecord> allMenuByUserId = this.list(new QueryWrapper<InvokeRecord>()
                 .lambda()
-                .eq(UserInvokeInterface::getUserId, userId)
-                .eq(UserInvokeInterface::getInvokeId, id));
-
-        boolean invokeInterface = this.removeById(id);
-        return userInvokeInterface && invokeInterface;
+                .eq(InvokeRecord::getUserId, TokenUtils.getUserId()));
+        List<InvokeRecord> pidList = this.list(new QueryWrapper<InvokeRecord>()
+                .lambda()
+                .eq(InvokeRecord::getUserId, TokenUtils.getUserId())
+                .eq(InvokeRecord::getParentId, invokeRecord.getId()));
+        List<String> res = new ArrayList<>();
+        res.add(invokeRecord.getId());
+        getSonId(allMenuByUserId,pidList,res);
+        return this.removeBatchByIds(res);
     }
 
-    @Override
-    public List<InvokeMenuVO> selectMenu(String id) {
+    private static final String ROOT_CODE = "0";
 
-        List<InvokeRecord> source = this.listInvokeMenu(id);
-        ThrowUtils.throwIf(source == null, ErrorCode.OPERATION_ERROR);
+    @Override
+    public List<InvokeMenuVO>  selectMenu(String id) {
+
+        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
+        List<InvokeRecord> source = this.list(new QueryWrapper<InvokeRecord>()
+                .lambda()
+                .eq(InvokeRecord::getUserId,id)
+                .eq(InvokeRecord::getType,ResourceTypeEnum.DIRECTORY.getCode()));
+        List<InvokeMenuVO> selectMenuVOList = new ArrayList<>();
         // 筛选出只是目录的菜单
-        List<InvokeMenuVO> selectMenuVOList = source.stream().map(item -> {
-            InvokeMenuVO invokeMenuVO = new InvokeMenuVO();
-            invokeMenuVO.setKey(item.getId());
-            invokeMenuVO.setTitle(item.getTitle());
-            invokeMenuVO.setValue(item.getId());
-            invokeMenuVO.setParentId(item.getParentId());
-            invokeMenuVO.setIsLeaf("F".equals(item.getType()));
-            return invokeMenuVO;
-        })
-                .filter(item->!item.getIsLeaf())
-                .collect(Collectors.toList());
+        selectMenuVOList.addAll(source.stream().map(item -> {
+                    InvokeMenuVO invokeMenuVO = new InvokeMenuVO();
+                    invokeMenuVO.setKey(item.getId());
+                    invokeMenuVO.setTitle(item.getTitle());
+                    invokeMenuVO.setValue(item.getId());
+                    invokeMenuVO.setParentId(item.getParentId());
+                    invokeMenuVO.setIsLeaf(ResourceTypeEnum.FILE.getCode().equals(item.getType()));
+                    return invokeMenuVO;
+                })
+                .collect(Collectors.toList()));
         // 生成树形结构
         Map<String, List<InvokeMenuVO>> parentIdMap = selectMenuVOList.stream()
                 .collect(Collectors.groupingBy(InvokeMenuVO::getParentId));
@@ -83,30 +91,33 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeInterfaceMappe
             menu.setChildren(parentIdMap.get(menu.getKey()));
         });
         selectMenuVOList = selectMenuVOList.stream()
-                .filter(menu->"0".equals(menu.getParentId()))
+                .filter(menu-> ROOT_CODE.equals(menu.getParentId()))
                 .collect(Collectors.toList());
-        InvokeMenuVO invokeMenuVO = new InvokeMenuVO();
-        invokeMenuVO.setTitle("根目录");
-        invokeMenuVO.setValue("0");
-        selectMenuVOList.add(invokeMenuVO);
+        InvokeMenuVO rootMenu = new InvokeMenuVO();
+        rootMenu.setTitle("根目录");
+        rootMenu.setValue(ROOT_CODE);
+        rootMenu.setKey(ROOT_CODE);
+        rootMenu.setParentId(ROOT_CODE);
+        selectMenuVOList.add(rootMenu);
         return selectMenuVOList;
     }
 
 
     @Override
-    public List<InvokeMenuVO> getInvokeMenuTree(HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        List<InvokeRecord> source = this.listInvokeMenu(loginUser.getId());
+    public List<InvokeMenuVO>  getInvokeMenuTree() {
+
+        List<InvokeRecord> source = this.list(new QueryWrapper<InvokeRecord>()
+                .lambda()
+                .eq(InvokeRecord::getUserId,TokenUtils.getUserId()));
         ThrowUtils.throwIf(source == null,ErrorCode.OPERATION_ERROR);
         List<InvokeMenuVO> invokeMenuVOList = source.stream().map(item -> {
             InvokeMenuVO invokeMenuVO = new InvokeMenuVO();
             invokeMenuVO.setTitle(item.getTitle());
             invokeMenuVO.setKey(item.getId());
             invokeMenuVO.setParentId(item.getParentId());
-            invokeMenuVO.setIsLeaf("F".equals(item.getType()));
+            invokeMenuVO.setIsLeaf(ResourceTypeEnum.FILE.getCode().equals(item.getType()));
             return invokeMenuVO;
         }).collect(Collectors.toList());
-
 
         Map<String, List<InvokeMenuVO>> parentIdMap = invokeMenuVOList.stream()
                 .collect(Collectors.groupingBy(InvokeMenuVO::getParentId));
@@ -114,28 +125,93 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeInterfaceMappe
             menu.setChildren(parentIdMap.get(menu.getKey()));
         });
         invokeMenuVOList = invokeMenuVOList.stream()
-                .filter(menu->"0".equals(menu.getParentId()))
+                .filter(menu->ROOT_CODE.equals(menu.getParentId()))
                 .collect(Collectors.toList());
         return invokeMenuVOList;
     }
 
     @Override
-    @Transactional
-    public Boolean addMenu(HttpServletRequest request,String title,String parentId) {
-
-        User loginUser = userService.getLoginUser(request);
-        String ID = UUIDUtils.simpleID();
-        UserInvokeInterface userInvokeInterface = new UserInvokeInterface();
-        userInvokeInterface.setInvokeId(ID);
-        userInvokeInterface.setUserId(loginUser.getId());
-
-        InvokeRecord invokeRecord = new InvokeRecord();
-        invokeRecord.setId(ID);
-        invokeRecord.setTitle(title);
-        invokeRecord.setParentId(parentId);
-        invokeRecord.setType("M");
-        return userInvokeInterfaceService.save(userInvokeInterface) && this.save(invokeRecord);
+    public Boolean addMenu(InvokeRecord invokeRecord) {
+        ThrowUtils.throwIf(StringUtils.isAnyEmpty(invokeRecord.getTitle(),invokeRecord.getId()),ErrorCode.PARAMS_ERROR);
+        InvokeRecord target = new InvokeRecord();
+        target.setUserId(TokenUtils.getUserId());
+        target.setTitle(invokeRecord.getTitle());
+        target.setParentId(invokeRecord.getId());
+        return this.save(target);
     }
+
+    /**
+     * @param invokeRecord
+     * @return
+     */
+    @Override
+    public Boolean editMenu(InvokeRecord invokeRecord) {
+        return this.updateById(invokeRecord);
+    }
+
+    @Override
+    public Boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest) {
+        if (StringUtils.isEmpty(invokeRecordRequest.getUrl())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // todo 参数验证
+        InvokeRecord invokeRecord = new InvokeRecord();
+        BeanUtils.copyProperties(invokeRecordRequest,invokeRecord);
+        String requestParam = JSONUtil.toJsonStr(invokeRecordRequest.getRequestParam());
+        String requestHeader = JSONUtil.toJsonStr(invokeRecordRequest.getRequestHeader());
+        String responseHeader = JSONUtil.toJsonStr(invokeRecordRequest.getResponseHeader());
+        invokeRecord.setParentId(invokeRecordRequest.getParentId());
+        invokeRecord.setUserId(TokenUtils.getUserId());
+        invokeRecord.setType(ResourceTypeEnum.FILE.getCode());
+        invokeRecord.setRequestParam(requestParam);
+        invokeRecord.setResponseHeader(requestHeader);
+        invokeRecord.setResponseBody(responseHeader);
+        invokeRecord.setCreateTime(new Date());
+        invokeRecord.setCreateBy(TokenUtils.getUserName());
+        invokeRecord.setUpdateBy(TokenUtils.getUserName());
+        invokeRecord.setUpdateTime(new Date());
+        invokeRecord.setTitle(invokeRecordRequest.getTitle());
+        return this.save(invokeRecord);
+    }
+
+
+    /**
+     * @param id
+     * @return
+     */
+    @Override
+    public InvokeRecordVO getInvokeRecordById(String id) {
+        ThrowUtils.throwIf(StringUtils.isEmpty(id),ErrorCode.PARAMS_ERROR);
+        InvokeRecord sourceInvokeRecord = this.getById(id);
+        ThrowUtils.throwIf(sourceInvokeRecord == null,ErrorCode.OPERATION_ERROR,"数据不存在");
+        InvokeRecordVO invokeRecordVO = new InvokeRecordVO();
+        BeanUtils.copyProperties(sourceInvokeRecord,invokeRecordVO);
+
+        List<RequestField> requestParams = JSONUtil.toList(sourceInvokeRecord.getRequestParam(), RequestField.class);
+        List<RequestField> requestHeaders = JSONUtil.toList(sourceInvokeRecord.getRequestHeader(), RequestField.class);
+        invokeRecordVO.setRequestParams(requestParams);
+        invokeRecordVO.setRequestHeaders(requestHeaders);
+        return invokeRecordVO;
+    }
+
+    /**
+     * 获取当前目录的所有子id
+     * @param allMenuByUserId
+     * @param pidList
+     * @param res
+     */
+    private void getSonId(List<InvokeRecord> allMenuByUserId,List<InvokeRecord> pidList,List<String> res){
+        for (int i = 0; i < pidList.size(); i++) {
+            InvokeRecord current = pidList.get(i);
+            res.add(current.getId());
+            List<InvokeRecord> sonList = allMenuByUserId.stream().filter(menu -> menu.getParentId().equals(current.getId()))
+                    .collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(sonList)){
+                getSonId(allMenuByUserId,sonList,res);
+            }
+        }
+    }
+
 }
 
 

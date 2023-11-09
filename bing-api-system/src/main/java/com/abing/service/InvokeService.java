@@ -1,6 +1,7 @@
 package com.abing.service;
 
 import com.abing.model.dto.search.QQRequest;
+import com.abing.model.request.InvokeRecordRequest;
 import com.abing.model.request.InvokeRequest;
 import com.abing.model.vo.InvokeMenuVO;
 

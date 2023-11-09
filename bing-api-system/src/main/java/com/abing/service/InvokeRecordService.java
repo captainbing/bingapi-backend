@@ -1,8 +1,10 @@
 package com.abing.service;
 
 import com.abing.model.domain.InvokeRecord;
+import com.abing.model.request.InvokeRecordRequest;
 import com.abing.model.request.InvokeRequest;
 import com.abing.model.vo.InvokeMenuVO;
+import com.abing.model.vo.InvokeRecordVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,19 +18,12 @@ import java.util.List;
 public interface InvokeRecordService extends IService<InvokeRecord> {
 
     /**
-     * 获取当前用户的接口调用目录
-     * @param id
-     * @return
-     */
-    List<InvokeRecord> listInvokeMenu(String id);
-
-    /**
      * 删除接口调用目录
-     * @param request
+     * @param id
      * @param id
      * @return
      */
-    Boolean deleteMenu(HttpServletRequest request,String id);
+    Boolean deleteMenu(String id);
 
     /**
      * 展示接口分组
@@ -38,16 +33,36 @@ public interface InvokeRecordService extends IService<InvokeRecord> {
     List<InvokeMenuVO> selectMenu(String id);
 
     /**
-     * 获取树形目录结构
+     * 获取当前用户树形目录结构
      * @return
      */
-    List<InvokeMenuVO> getInvokeMenuTree(HttpServletRequest request);
+    List<InvokeMenuVO> getInvokeMenuTree();
 
     /**
      * 添加菜单目录
-     * @param request
-     * @param title
+     * @param invokeRecord
      * @return
      */
-    Boolean addMenu(HttpServletRequest request,String title,String parentId);
+    Boolean addMenu(InvokeRecord invokeRecord);
+
+    /**
+     * 修改菜单
+     * @param invokeRecord
+     * @return
+     */
+    Boolean editMenu(InvokeRecord invokeRecord);
+
+    /**
+     * 保存接口调用记录
+     * @param invokeRecordRequest
+     * @return
+     */
+    Boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest);
+
+    /**
+     * 根据Id获取调用记录
+     * @param id
+     * @return
+     */
+    InvokeRecordVO getInvokeRecordById(String id);
 }

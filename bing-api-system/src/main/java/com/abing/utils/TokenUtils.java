@@ -23,11 +23,25 @@ public class TokenUtils {
         return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
     }
 
+
+    /**
+     * 获取用户ID
+     * @return
+     */
+    public static String getUserId(){
+        HttpSession httpSession = getRequest().getSession();
+        User user = (User) httpSession.getAttribute(UserConstant.USER_LOGIN_STATE);
+        if (user != null){
+            return user.getId();
+        }
+        return null;
+    }
+
     /**
      * 获取当前用户登录用户名
      * @return
      */
-    public static String getLoginUserName(){
+    public static String getUserName(){
         HttpSession httpSession = getRequest().getSession();
         User user = (User) httpSession.getAttribute(UserConstant.USER_LOGIN_STATE);
         if (user != null){
@@ -41,7 +55,7 @@ public class TokenUtils {
      * 获取当前用户登录账号（邮箱）
      * @return
      */
-    public static String getLoginUserAccount(){
+    public static String getUserAccount(){
         HttpSession httpSession = getRequest().getSession();
         User user = (User) httpSession.getAttribute(UserConstant.USER_LOGIN_STATE);
         if (user != null){

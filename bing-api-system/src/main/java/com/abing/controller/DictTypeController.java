@@ -3,10 +3,7 @@ package com.abing.controller;
 import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
-import com.abing.exception.BusinessException;
-import com.abing.model.domain.DictData;
 import com.abing.model.domain.DictType;
-import com.abing.service.DictDataService;
 import com.abing.service.DictTypeService;
 import com.abing.utils.ThrowUtils;
 import com.abing.utils.TokenUtils;
@@ -51,9 +48,9 @@ public class DictTypeController {
         ThrowUtils.throwIf(StringUtils.isAnyEmpty(
                 dictType.getDictType(),dictType.getDictName()),
                 ErrorCode.PARAMS_ERROR);
-        dictType.setCreateBy(TokenUtils.getLoginUserName());
+        dictType.setCreateBy(TokenUtils.getUserName());
         dictType.setCreateTime(new Date());
-        dictType.setUpdateBy(TokenUtils.getLoginUserName());
+        dictType.setUpdateBy(TokenUtils.getUserName());
         dictType.setUpdateTime(new Date());
         return ResultUtils.success(dictTypeService.save(dictType));
     }
@@ -69,7 +66,7 @@ public class DictTypeController {
     @PostMapping("/edit")
     public BaseResponse<Boolean> updateDictType(@RequestBody DictType dictType){
         ThrowUtils.throwIf(dictType.getId() == null,ErrorCode.PARAMS_ERROR);
-        dictType.setUpdateBy(TokenUtils.getLoginUserName());
+        dictType.setUpdateBy(TokenUtils.getUserName());
         dictType.setUpdateTime(new Date());
         return ResultUtils.success(dictTypeService.updateById(dictType));
     }

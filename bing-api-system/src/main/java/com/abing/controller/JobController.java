@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.stream.Stream;
 
 /**
  * @Author CaptainBing
@@ -57,9 +56,9 @@ public class JobController {
     public BaseResponse<Boolean> addJob(SysJob job){
         ThrowUtils.throwIf(CronExpression.isValidExpression(job.getCronExpression()),ErrorCode.PARAMS_ERROR,"cron表达式不合法");
         ThrowUtils.throwIf(StringUtils.isAnyEmpty(job.getJobName(),job.getJobGroup()),ErrorCode.PARAMS_ERROR);
-        job.setCreateBy(TokenUtils.getLoginUserName());
+        job.setCreateBy(TokenUtils.getUserName());
         job.setCreateTime(new Date());
-        job.setUpdateBy(TokenUtils.getLoginUserName());
+        job.setUpdateBy(TokenUtils.getUserName());
         job.setUpdateTime(new Date());
         return ResultUtils.success(jobService.save(job));
     }
@@ -74,7 +73,7 @@ public class JobController {
     @PostMapping("/edit")
     public BaseResponse<Boolean> updateJob(@RequestBody SysJob job){
         ThrowUtils.throwIf(job.getId() == null,ErrorCode.PARAMS_ERROR);
-        job.setUpdateBy(TokenUtils.getLoginUserName());
+        job.setUpdateBy(TokenUtils.getUserName());
 //        job.setUpdateTime(new Date());
         return ResultUtils.success(jobService.updateById(job));
     }
@@ -83,7 +82,7 @@ public class JobController {
     @PostMapping("/status/change")
     public BaseResponse<Boolean> changeJobStatus(@RequestBody SysJob job){
         ThrowUtils.throwIf(job.getId() == null,ErrorCode.PARAMS_ERROR);
-        job.setUpdateBy(TokenUtils.getLoginUserName());
+        job.setUpdateBy(TokenUtils.getUserName());
 //        job.setUpdateTime(new Date());
         return ResultUtils.success(jobService.updateById(job));
     }

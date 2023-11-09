@@ -5,29 +5,20 @@ import cn.hutool.http.Method;
 import com.abing.common.ErrorCode;
 import com.abing.constant.SearchConstant;
 import com.abing.exception.BusinessException;
-import com.abing.model.domain.InvokeRecord;
-import com.abing.model.domain.User;
-import com.abing.model.domain.UserInvokeInterface;
 import com.abing.model.dto.search.QQRequest;
 import com.abing.model.enums.AvatarSizeEnum;
 import com.abing.model.enums.RequestMethodEnum;
 import com.abing.model.request.InvokeRequest;
-import com.abing.model.vo.InvokeMenuVO;
 import com.abing.service.InvokeRecordService;
 import com.abing.service.InvokeService;
-import com.abing.service.UserInvokeInterfaceService;
 import com.abing.service.UserService;
 import com.abing.utils.ThrowUtils;
-import com.abing.utils.UUIDUtils;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.abing.model.enums.AvatarSizeEnum.*;
 
@@ -41,9 +32,6 @@ public class InvokeServiceImpl implements InvokeService {
 
     @Resource
     private InvokeRecordService invokeRecordService;
-
-    @Resource
-    private UserInvokeInterfaceService userInvokeInterfaceService;
     
     @Resource
     private UserService userService;
@@ -54,6 +42,10 @@ public class InvokeServiceImpl implements InvokeService {
      */
     @Override
     public InvokeRequest invokeAnotherInterface(InvokeRequest invokeRequest) {
+        if (StringUtils.isEmpty(invokeRequest.getUrl())){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // TODO 参数校验
         String method = invokeRequest.getMethod().toUpperCase();
         RequestMethodEnum requestMethodEnum = RequestMethodEnum.getEnum(method);
         switch (requestMethodEnum){
@@ -104,6 +96,7 @@ public class InvokeServiceImpl implements InvokeService {
      */
     @Override
     public String fetchQQAvatar(QQRequest qqRequest) {
+        ThrowUtils.throwIf(StringUtils.isEmpty(qqRequest.getQq()),ErrorCode.PARAMS_ERROR);
         String qq = qqRequest.getQq();
         String size = qqRequest.getSize();
         AvatarSizeEnum sizeEnum = AvatarSizeEnum.getEnumByValue(size);

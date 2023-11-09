@@ -56,9 +56,9 @@ public class ConfigController {
         ThrowUtils.throwIf(StringUtils.isAnyEmpty(
                 config.getConfigKey(),config.getConfigValue()),
                 ErrorCode.PARAMS_ERROR);
-        config.setCreateBy(TokenUtils.getLoginUserName());
+        config.setCreateBy(TokenUtils.getUserName());
         config.setCreateTime(new Date());
-        config.setUpdateBy(TokenUtils.getLoginUserName());
+        config.setUpdateBy(TokenUtils.getUserName());
         config.setUpdateTime(new Date());
         return ResultUtils.success(configService.save(config));
     }
@@ -73,7 +73,7 @@ public class ConfigController {
     @PostMapping("/edit")
     public BaseResponse<Boolean> updateConfig(@RequestBody SysConfig config){
         ThrowUtils.throwIf(config.getId() == null,ErrorCode.PARAMS_ERROR);
-        config.setUpdateBy(TokenUtils.getLoginUserName());
+        config.setUpdateBy(TokenUtils.getUserName());
         config.setUpdateTime(new Date());
         return ResultUtils.success(configService.updateById(config));
     }

@@ -2,16 +2,16 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.abing.mapper.InvokeInterfaceMapper">
+<mapper namespace="com.abing.mapper.InvokeRecordMapper">
 
     <resultMap id="BaseResultMap" type="com.abing.model.domain.InvokeRecord">
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="parentId" column="parentId" jdbcType="INTEGER"/>
             <result property="url" column="url" jdbcType="VARCHAR"/>
-            <result property="requestParams" column="requestParams" jdbcType="VARCHAR"/>
-            <result property="requestHeaders" column="requestHeaders" jdbcType="VARCHAR"/>
+            <result property="requestParam" column="requestParam" jdbcType="VARCHAR"/>
+            <result property="requestHeader" column="requestHeader" jdbcType="VARCHAR"/>
             <result property="requestBody" column="requestBody" jdbcType="VARCHAR"/>
-            <result property="responseHeaders" column="responseHeaders" jdbcType="VARCHAR"/>
+            <result property="responseHeader" column="responseHeader" jdbcType="VARCHAR"/>
             <result property="responseBody" column="responseBody" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateBy" column="updateBy" jdbcType="VARCHAR"/>
@@ -22,15 +22,11 @@
 
     <sql id="Base_Column_List">
         id,parentId,url,
-        requestParams,requestHeaders,requestBody,
-        responseHeaders,responseBody,createTime,
+        requestParam,requestHeader,requestBody,
+        responseHeader,responseBody,createTime,
         updateBy,updateTime,remark,
         title
     </sql>
 
-    <select id="listInvokeMenu" resultMap="BaseResultMap">
-        select i.* from user_invoke_interface ui
-            join invoke_interface i on ui.invokeId = i.id where ui.userId = #{userId}
-    </select>
 
 </mapper>

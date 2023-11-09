@@ -18,7 +18,7 @@ public class InvokeRecord implements Serializable {
     /**
      * invokeId
      */
-    @TableId(type = IdType.NONE)
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
 
     /**
@@ -44,12 +44,12 @@ public class InvokeRecord implements Serializable {
     /**
      * 请求参数
      */
-    private String requestParams;
+    private String requestParam;
 
     /**
      * 请求头
      */
-    private String requestHeaders;
+    private String requestHeader;
 
     /**
      * 请求体
@@ -59,12 +59,17 @@ public class InvokeRecord implements Serializable {
     /**
      * 响应头
      */
-    private String responseHeaders;
+    private String responseHeader;
 
     /**
      * 响应体
      */
     private String responseBody;
+
+    /**
+     * 创建人
+     */
+    private String createBy;
 
     /**
      * 创建时间
