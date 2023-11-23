@@ -3,3 +3,5 @@
 /bing-api-common/target/
 /bing-api-gateway/target/
 /bing-api-web/target/
+/quote.txt
+/logs/

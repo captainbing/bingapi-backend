@@ -187,10 +187,10 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
         InvokeRecordVO invokeRecordVO = new InvokeRecordVO();
         BeanUtils.copyProperties(sourceInvokeRecord,invokeRecordVO);
 
-        List<RequestField> requestParams = JSONUtil.toList(sourceInvokeRecord.getRequestParam(), RequestField.class);
-        List<RequestField> requestHeaders = JSONUtil.toList(sourceInvokeRecord.getRequestHeader(), RequestField.class);
-        invokeRecordVO.setRequestParams(requestParams);
-        invokeRecordVO.setRequestHeaders(requestHeaders);
+        List<RequestField> requestParam = JSONUtil.toList(sourceInvokeRecord.getRequestParam(), RequestField.class);
+        List<RequestField> requestHeader = JSONUtil.toList(sourceInvokeRecord.getRequestHeader(), RequestField.class);
+        invokeRecordVO.setRequestParam(requestParam);
+        invokeRecordVO.setRequestHeader(requestHeader);
         return invokeRecordVO;
     }
 
