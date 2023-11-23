@@ -151,7 +151,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
 
     @Override
     public Boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest) {
-        if (StringUtils.isEmpty(invokeRecordRequest.getUrl())){
+        if (StringUtils.isEmpty(invokeRecordRequest.getRequestUrl())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // todo 参数验证
@@ -164,8 +164,8 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
         invokeRecord.setUserId(TokenUtils.getUserId());
         invokeRecord.setType(ResourceTypeEnum.FILE.getCode());
         invokeRecord.setRequestParam(requestParam);
-        invokeRecord.setResponseHeader(requestHeader);
-        invokeRecord.setResponseBody(responseHeader);
+        invokeRecord.setRequestHeader(requestHeader);
+        invokeRecord.setResponseHeader(responseHeader);
         invokeRecord.setCreateTime(new Date());
         invokeRecord.setCreateBy(TokenUtils.getUserName());
         invokeRecord.setUpdateBy(TokenUtils.getUserName());
@@ -189,8 +189,10 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
 
         List<RequestField> requestParam = JSONUtil.toList(sourceInvokeRecord.getRequestParam(), RequestField.class);
         List<RequestField> requestHeader = JSONUtil.toList(sourceInvokeRecord.getRequestHeader(), RequestField.class);
+        List<RequestField> responseHeader = JSONUtil.toList(sourceInvokeRecord.getResponseHeader(), RequestField.class);
         invokeRecordVO.setRequestParam(requestParam);
         invokeRecordVO.setRequestHeader(requestHeader);
+        invokeRecordVO.setResponseHeader(responseHeader);
         return invokeRecordVO;
     }
 

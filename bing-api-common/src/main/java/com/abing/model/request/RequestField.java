@@ -12,7 +12,9 @@ public class RequestField {
 
     private String key;
 
-    private String value;
+    private String requestKey;
+
+    private String requestValue;
 
     private String description;
 

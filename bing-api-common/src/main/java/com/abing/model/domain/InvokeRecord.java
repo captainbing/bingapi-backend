@@ -34,7 +34,12 @@ public class InvokeRecord implements Serializable {
     /**
      * 请求路径
      */
-    private String url;
+    private String requestUrl;
+
+    /**
+     * 请求方法
+     */
+    private String requestMethod;
 
     /**
      * 菜单类型 M 目录 F 文件

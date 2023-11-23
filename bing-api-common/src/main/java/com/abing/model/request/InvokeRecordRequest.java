@@ -14,7 +14,7 @@ public class InvokeRecordRequest {
 
     private String title;
     private String parentId;
-    private String url;
+    private String requestUrl;
     private String requestMethod;
     private List<RequestField> requestParam;
     private List<RequestField> requestHeader;
