@@ -1,6 +1,8 @@
 package com.abing.model.request;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
@@ -10,16 +12,18 @@ import java.util.List;
  * @Description
  */
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class InvokeRecordRequest {
 
-    private String title;
-    private String parentId;
-    private String requestUrl;
-    private String requestMethod;
-    private List<RequestField> requestParam;
-    private List<RequestField> requestHeader;
-    private String requestBody;
-    private List<RequestField> responseHeader;
-    private String responseBody;
+    String id;
+    String title;
+    String parentId;
+    String requestUrl;
+    String requestMethod;
+    List<RequestField> requestParam;
+    List<RequestField> requestHeader;
+    String requestBody;
+    List<RequestField> responseHeader;
+    String responseBody;
 
 }

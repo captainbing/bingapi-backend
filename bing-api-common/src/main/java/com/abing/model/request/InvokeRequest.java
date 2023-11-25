@@ -1,7 +1,10 @@
 package com.abing.model.request;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,40 +13,29 @@ import java.util.Map;
  * @Description
  */
 @Data
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class InvokeRequest {
 
     /**
      * 请求URL
      */
-    private String url;
+    String requestUrl;
     /**
      * 请求方式 GET POST ...
      */
-    private String method;
+    String requestMethod;
+    /**
+     * 请求参数
+     */
+    List<RequestField> requestParam;
     /**
      * 请求头
      */
-    private Map<String, String> requestParams;
-    /**
-     * 请求头
-     */
-    private Map<String, String> requestHeaders;
-    /**
-     * 响应头
-     */
-    private Map<String, String> responseHeaders;
+    List<RequestField> requestHeader;
 
     /**
-     * 请求体 JSON
+     * 请求体
      */
-    private String requestBody;
-    /**
-     * 响应体 JSON
-     */
-    private String responseBody;
-    /**
-     * test响应
-     */
-    private String baseResponse;
+    String requestBody;
 
 }

@@ -23,7 +23,7 @@ public class BingApiConfig {
 
     @Bean
     public BingApiClient bingApiClient(){
-        return new BingApiClient();
+        return new BingApiClient(accessKey,secretKey);
     }
 
 

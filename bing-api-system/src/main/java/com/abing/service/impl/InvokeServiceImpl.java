@@ -1,7 +1,6 @@
 package com.abing.service.impl;
 
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.Method;
+import cn.hutool.http.*;
 import com.abing.common.ErrorCode;
 import com.abing.constant.SearchConstant;
 import com.abing.exception.BusinessException;
@@ -9,6 +8,8 @@ import com.abing.model.dto.search.QQRequest;
 import com.abing.model.enums.AvatarSizeEnum;
 import com.abing.model.enums.RequestMethodEnum;
 import com.abing.model.request.InvokeRequest;
+import com.abing.model.request.RequestField;
+import com.abing.model.vo.InvokeVO;
 import com.abing.service.InvokeRecordService;
 import com.abing.service.InvokeService;
 import com.abing.service.UserService;
@@ -18,7 +19,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.abing.model.enums.AvatarSizeEnum.*;
 
@@ -30,64 +32,48 @@ import static com.abing.model.enums.AvatarSizeEnum.*;
 @Service
 public class InvokeServiceImpl implements InvokeService {
 
-    @Resource
-    private InvokeRecordService invokeRecordService;
-    
-    @Resource
-    private UserService userService;
 
     /**
-     * @param invokeRequest TODO GET POST
+     * 发送请求
+     * @param invokeRequest
      * @return
      */
     @Override
-    public InvokeRequest invokeAnotherInterface(InvokeRequest invokeRequest) {
-        if (StringUtils.isEmpty(invokeRequest.getUrl())){
+    public InvokeVO invokeAnotherInterface(InvokeRequest invokeRequest) {
+
+        if (StringUtils.isEmpty(invokeRequest.getRequestUrl())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // TODO 参数校验
-        String method = invokeRequest.getMethod().toUpperCase();
-        RequestMethodEnum requestMethodEnum = RequestMethodEnum.getEnum(method);
-        switch (requestMethodEnum){
-            case Get:
+        String method = invokeRequest.getRequestMethod().toUpperCase();
+        List<RequestField> requestParamField = invokeRequest.getRequestParam();
+        List<RequestField> requestHeaderField = invokeRequest.getRequestHeader();
 
-                String getBody = HttpRequest.of(invokeRequest.getUrl())
-                        .setMethod(Method.GET)
-                        .execute()
-                        .body();
-                System.out.println(getBody);
-                InvokeRequest getRequest = new InvokeRequest();
-                getRequest.setBaseResponse(getBody);
-                return getRequest;
-            case POST:
-                Map<String, String> requestParams = invokeRequest.getRequestParams();
-                String body = "";
-                if (requestParams != null){
-                    Gson gson = new Gson();
-                    body = gson.toJson(requestParams);
-                }
-                String postBody = HttpRequest.of(invokeRequest.getUrl())
-                        .setMethod(Method.POST)
-                        .body(body)
-                        .execute()
-                        .body();
-                System.out.println(postBody);
-                InvokeRequest postRequest = new InvokeRequest();
-                postRequest.setBaseResponse(postBody);
-                return postRequest;
-            case PUT:
-                break;
-            case DELETE:
-                break;
-            case OPTIONS:
-                break;
-            case PATCH:
-                break;
-            default:{
-                throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        Map<String, Object> requestParam = requestParamField.stream().collect(Collectors.toMap(RequestField::getRequestKey, RequestField::getRequestValue) );
+        Map<String, String> requestHeader = requestHeaderField.stream().collect(Collectors.toMap(RequestField::getRequestKey, RequestField::getRequestValue));
+        String requestBody = invokeRequest.getRequestBody();
+
+        // form 与 body 会发生互相覆盖
+        HttpResponse httpResponse = HttpRequest.of(invokeRequest.getRequestUrl())
+                .setMethod(Method.valueOf(method))
+                .form(requestParam)
+                .addHeaders(requestHeader)
+                .timeout(10000)
+                .execute();
+
+        Map<String, List<String>> responseHeader = httpResponse.headers();
+        // 移除 HTTP/1.1 200  (key null)
+        Map<String, List<String>> responseHeaderMap = new HashMap<>();
+        responseHeader.forEach((key, value) -> {
+            if (key != null) {
+                responseHeaderMap.put(key, value);
             }
-        }
-        return null;
+        });
+        String responseBody = httpResponse.body();
+        InvokeVO invokeVO = new InvokeVO();
+        invokeVO.setResponseHeader(responseHeaderMap);
+        invokeVO.setResponseBody(responseBody);
+        return invokeVO;
     }
 
     /**

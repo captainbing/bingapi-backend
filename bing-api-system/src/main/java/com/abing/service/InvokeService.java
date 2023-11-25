@@ -4,6 +4,7 @@ import com.abing.model.dto.search.QQRequest;
 import com.abing.model.request.InvokeRecordRequest;
 import com.abing.model.request.InvokeRequest;
 import com.abing.model.vo.InvokeMenuVO;
+import com.abing.model.vo.InvokeVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -20,7 +21,7 @@ public interface InvokeService {
      * @param invokeRequest
      * @return
      */
-    InvokeRequest invokeAnotherInterface(InvokeRequest invokeRequest);
+    InvokeVO invokeAnotherInterface(InvokeRequest invokeRequest);
 
     /**
      * 获取QQ头像地址

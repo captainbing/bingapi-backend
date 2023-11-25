@@ -23,7 +23,7 @@ public interface InvokeRecordService extends IService<InvokeRecord> {
      * @param id
      * @return
      */
-    Boolean deleteMenu(String id);
+    boolean deleteMenu(String id);
 
     /**
      * 展示接口分组
@@ -43,21 +43,21 @@ public interface InvokeRecordService extends IService<InvokeRecord> {
      * @param invokeRecord
      * @return
      */
-    Boolean addMenu(InvokeRecord invokeRecord);
+    boolean addMenu(InvokeRecord invokeRecord);
 
     /**
      * 修改菜单
      * @param invokeRecord
      * @return
      */
-    Boolean editMenu(InvokeRecord invokeRecord);
+    boolean editMenu(InvokeRecord invokeRecord);
 
     /**
      * 保存接口调用记录
      * @param invokeRecordRequest
      * @return
      */
-    Boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest);
+    boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest);
 
     /**
      * 根据Id获取调用记录
@@ -65,4 +65,25 @@ public interface InvokeRecordService extends IService<InvokeRecord> {
      * @return
      */
     InvokeRecordVO getInvokeRecordById(String id);
+
+    /**
+     * 覆盖当前调用记录
+     * @param invokeRecordRequest
+     * @return
+     */
+    boolean recoverInvokeRecord(InvokeRecordRequest invokeRecordRequest);
+
+    /**
+     * 更新记录信息 title parentId
+     * @param invokeRecordRequest
+     * @return
+     */
+    boolean updateInvokeRecordById(InvokeRecordRequest invokeRecordRequest);
+
+    /**
+     * 复制当前记录
+     * @param id
+     * @return
+     */
+    boolean copyInvokeRecordById(String id);
 }

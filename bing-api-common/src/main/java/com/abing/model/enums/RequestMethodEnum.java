@@ -1,10 +1,13 @@
 package com.abing.model.enums;
 
+import lombok.Getter;
+
 /**
  * @Author CaptainBing
  * @Date 2023/8/17 16:53
  * @Description
  */
+@Getter
 public enum RequestMethodEnum {
 
     Get("GET"),

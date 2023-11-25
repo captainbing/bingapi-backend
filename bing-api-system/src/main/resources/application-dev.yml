@@ -1,0 +1,112 @@
+spring:
+  application:
+    name: dubbo-apisystem-provider
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yml
+      discovery:
+        server-addr: 127.0.0.1:8848
+  mail:
+    default-encoding: UTF-8     # 默认编码模式
+    from: errorbing@163.com
+    host: smtp.163.com           # 邮件服务地址
+    username: errorbing@163.com  # 发送者邮箱
+#    username: 750321038@qq.com  # 发送者邮箱
+#    password: oazpcfyenyerbchc
+    password: SUNDHRVJNSYUGJOM  # 授权码
+    properties:
+      mail:
+        smtp:
+          timeout: 25000
+          auth: true
+          # 如果是用 SSL方式，需要配置如下属性,使用qq邮箱的话需要开启
+          starttls:
+            enable: true
+            required: true
+  # 默认 dev 环境
+#  profiles:
+#    active: dev
+  # 支持 swagger3
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    # store-type: redis
+    # 30 天过期
+    timeout: 2592000
+  # 数据库配置
+  # todo 需替换配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/bingapi
+    username: root
+    password: root
+  servlet:
+    multipart:
+      # 大小限制
+      max-file-size: 10MB
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+#    date-format: yyyy-MM-dd
+    time-zone: GMT+8 # 时区修改为东8区
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never # always m默认每次都会新建表
+server:
+#  servlet:
+#    context-path: /backend
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+    port: 9527
+    servlet:
+      context-path: /sys
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted # 全局逻辑删除的实体字段名
+      logic-delete-value: 1 # 逻辑已删除值（默认为 1）
+      logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+dubbo:
+  application:
+    name: dubbo-apisystem-provider
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    address: nacos://localhost:8848
+  provider:
+    timeout: 50000
+
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.abing.controller
+# knife4j的增强配置，不需要增强可以不配
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+bing:
+  client:
+    access-key: xiongbingzhong
+    secret-key: 1234567890

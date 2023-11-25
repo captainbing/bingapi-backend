@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -42,7 +43,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
 
 
     @Override
-    public Boolean deleteMenu(String id) {
+    public boolean deleteMenu(String id) {
         ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR);
         InvokeRecord invokeRecord = this.getById(id);
         ThrowUtils.throwIf(invokeRecord == null,ErrorCode.OPERATION_ERROR,"删除项不存在");
@@ -131,7 +132,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
     }
 
     @Override
-    public Boolean addMenu(InvokeRecord invokeRecord) {
+    public boolean addMenu(InvokeRecord invokeRecord) {
         ThrowUtils.throwIf(StringUtils.isAnyEmpty(invokeRecord.getTitle(),invokeRecord.getId()),ErrorCode.PARAMS_ERROR);
         InvokeRecord target = new InvokeRecord();
         target.setUserId(TokenUtils.getUserId());
@@ -145,27 +146,29 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
      * @return
      */
     @Override
-    public Boolean editMenu(InvokeRecord invokeRecord) {
+    public boolean editMenu(InvokeRecord invokeRecord) {
         return this.updateById(invokeRecord);
     }
 
     @Override
-    public Boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest) {
+    public boolean saveInvokeRecord(InvokeRecordRequest invokeRecordRequest) {
         if (StringUtils.isEmpty(invokeRecordRequest.getRequestUrl())){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // todo 参数验证
         InvokeRecord invokeRecord = new InvokeRecord();
-        BeanUtils.copyProperties(invokeRecordRequest,invokeRecord);
         String requestParam = JSONUtil.toJsonStr(invokeRecordRequest.getRequestParam());
         String requestHeader = JSONUtil.toJsonStr(invokeRecordRequest.getRequestHeader());
         String responseHeader = JSONUtil.toJsonStr(invokeRecordRequest.getResponseHeader());
+        invokeRecord.setRequestUrl(invokeRecordRequest.getRequestUrl());
+        invokeRecord.setRequestMethod(invokeRecordRequest.getRequestMethod());
         invokeRecord.setParentId(invokeRecordRequest.getParentId());
         invokeRecord.setUserId(TokenUtils.getUserId());
         invokeRecord.setType(ResourceTypeEnum.FILE.getCode());
         invokeRecord.setRequestParam(requestParam);
         invokeRecord.setRequestHeader(requestHeader);
         invokeRecord.setResponseHeader(responseHeader);
+        invokeRecord.setResponseBody(invokeRecordRequest.getResponseBody());
         invokeRecord.setCreateTime(new Date());
         invokeRecord.setCreateBy(TokenUtils.getUserName());
         invokeRecord.setUpdateBy(TokenUtils.getUserName());
@@ -183,7 +186,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
     public InvokeRecordVO getInvokeRecordById(String id) {
         ThrowUtils.throwIf(StringUtils.isEmpty(id),ErrorCode.PARAMS_ERROR);
         InvokeRecord sourceInvokeRecord = this.getById(id);
-        ThrowUtils.throwIf(sourceInvokeRecord == null,ErrorCode.OPERATION_ERROR,"数据不存在");
+        ThrowUtils.throwIf(sourceInvokeRecord == null,ErrorCode.NOT_FOUND_ERROR,"数据不存在");
         InvokeRecordVO invokeRecordVO = new InvokeRecordVO();
         BeanUtils.copyProperties(sourceInvokeRecord,invokeRecordVO);
 
@@ -194,6 +197,51 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
         invokeRecordVO.setRequestHeader(requestHeader);
         invokeRecordVO.setResponseHeader(responseHeader);
         return invokeRecordVO;
+    }
+
+
+    /**
+     * @param invokeRecordRequest
+     * @return
+     */
+    @Override
+    public boolean recoverInvokeRecord(InvokeRecordRequest invokeRecordRequest) {
+
+        InvokeRecord invokeRecord = new InvokeRecord();
+        BeanUtils.copyProperties(invokeRecordRequest,invokeRecord);
+        String requestParam = JSONUtil.toJsonStr(invokeRecordRequest.getRequestParam());
+        String requestHeader = JSONUtil.toJsonStr(invokeRecordRequest.getRequestHeader());
+        String responseHeader = JSONUtil.toJsonStr(invokeRecordRequest.getResponseHeader());
+        invokeRecord.setRequestUrl(invokeRecordRequest.getRequestUrl());
+        invokeRecord.setRequestBody(invokeRecordRequest.getRequestMethod());
+        invokeRecord.setRequestParam(requestParam);
+        invokeRecord.setRequestHeader(requestHeader);
+        invokeRecord.setResponseHeader(responseHeader);
+        invokeRecord.setUpdateBy(TokenUtils.getUserName());
+        invokeRecord.setUpdateTime(new Date());
+        return this.updateById(invokeRecord);
+    }
+
+    @Override
+    public boolean updateInvokeRecordById(InvokeRecordRequest invokeRecordRequest) {
+
+        ThrowUtils.throwIf(invokeRecordRequest.getId() == null,ErrorCode.PARAMS_ERROR);
+        InvokeRecord invokeRecord = new InvokeRecord();
+        invokeRecord.setTitle(invokeRecordRequest.getTitle());
+        invokeRecord.setParentId(invokeRecordRequest.getParentId());
+        return this.updateById(invokeRecord);
+    }
+
+    @Override
+    public boolean copyInvokeRecordById(String id) {
+        ThrowUtils.throwIf(id == null,ErrorCode.PARAMS_ERROR,"请求Id为空");
+        InvokeRecord sourceInvokeRecord = this.getById(id);
+        ThrowUtils.throwIf(sourceInvokeRecord == null,ErrorCode.NOT_FOUND_ERROR);
+        InvokeRecord invokeRecord = new InvokeRecord();
+        BeanUtils.copyProperties(sourceInvokeRecord,invokeRecord);
+        invokeRecord.setId(null);
+        invokeRecord.setTitle(invokeRecord.getTitle() + " Copy");
+        return this.save(invokeRecord);
     }
 
     /**

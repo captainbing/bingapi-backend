@@ -1,25 +1,3 @@
-server:
-  port: 9090
-dubbo:
-  application:
-    name: dubbo-gateway-consumer
-  protocol:
-    name: dubbo
-    port: -1
-  registry:
-    address: nacos://127.0.0.1:8848
-    register: false # true(默认), false:表示服务不注册到注册中心(只订阅,直连服务正常),且dubbo-admin不显示
-  consumer:
-    check: false # 默认true.服务启动时候检查是否可用,服务不可用时无法启动项目, false则不检查
 spring:
-  cloud:
-    gateway:
-      routes:
-        - id: system
-          uri: http://localhost:9527
-          predicates:
-            - Path=/sys/**
-        - id: web
-          uri: http://localhost:8090
-          predicates:
-            - Path=/web/**
+  profiles:
+    active: dev

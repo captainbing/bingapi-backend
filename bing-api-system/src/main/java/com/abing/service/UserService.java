@@ -35,7 +35,7 @@ public interface UserService extends IService<User> {
      * @param request
      * @return
      */
-    UserVO captchaLogin(String userAccount,String captcha,HttpServletRequest request);
+    UserVO userLoginByCaptcha(String userAccount, String captcha, HttpServletRequest request);
 
 
     /**

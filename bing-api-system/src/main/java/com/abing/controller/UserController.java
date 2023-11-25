@@ -10,9 +10,7 @@ import com.abing.exception.BusinessException;
 import com.abing.model.domain.User;
 import com.abing.model.dto.user.ModifyPasswordRequest;
 import com.abing.model.dto.user.SearchUserRequest;
-import com.abing.model.vo.InterfaceInfoVO;
 import com.abing.model.vo.UserVO;
-import com.abing.service.MailService;
 import com.abing.service.UserService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +58,7 @@ public class UserController {
         if (StringUtils.isAnyEmpty(userAccount, captcha)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        return ResultUtils.success(userService.captchaLogin(userAccount, captcha, request));
+        return ResultUtils.success(userService.userLoginByCaptcha(userAccount, captcha, request));
     }
 
     @GetMapping("/captcha")

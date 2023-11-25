@@ -31,6 +31,15 @@ public class User implements Serializable {
     private String userPassword;
 
     /**
+     * accessKey
+     */
+    private String accessKey;
+    /**
+     * secretKey
+     */
+    private String secretKey;
+
+    /**
      * 微信开放平台id
      */
     private String unionId;

@@ -10,7 +10,7 @@
     <version>1.0.0</version>
     <modules>
         <module>bing-api-common</module>
-        <module>bing-api-web</module>
+        <module>bing-api-interface</module>
         <module>bing-api-gateway</module>
         <module>bing-api-system</module>
     </modules>

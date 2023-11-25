@@ -1,5 +1,7 @@
 package com.abing.service.impl;
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.abing.common.ErrorCode;
 import com.abing.constant.UserConstant;
 import com.abing.exception.BusinessException;
@@ -74,7 +76,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public UserVO captchaLogin(String userAccount, String captcha,HttpServletRequest request) {
+    public UserVO userLoginByCaptcha(String userAccount, String captcha, HttpServletRequest request) {
         String sessionCaptcha = (String)request.getSession().getAttribute(userAccount);
         if (!captcha.equals(sessionCaptcha)){
             throw new BusinessException(ErrorCode.SUCCESS,"验证码不正确，请重新输入");
@@ -90,6 +92,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setUserPassword(EncryptUtils.enCryptPasswordMd5(sessionCaptcha));
+        String accessKey = DigestUtil.md5Hex(UserConstant.SALT + userAccount + RandomUtil.randomNumbers(5));
+        String secretKey = DigestUtil.md5Hex(UserConstant.SALT + userAccount + RandomUtil.randomNumbers(8));
+        user.setAccessKey(accessKey);
+        user.setSecretKey(secretKey);;
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         int count = userMapper.insert(user);

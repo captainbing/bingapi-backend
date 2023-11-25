@@ -24,6 +24,15 @@ public class UserVO implements Serializable {
      * 账号
      */
     private String userAccount;
+    /**
+     * accessKey
+     */
+    private String accessKey;
+
+    /**
+     * secretKey
+     */
+    private String secretKey;
 
     /**
      * 微信开放平台id
@@ -76,9 +85,6 @@ public class UserVO implements Serializable {
      */
     @TableField("deleted")
     private Integer deleted;
-
-
-
 
     private static final long serialVersionUID = 1L;
 }

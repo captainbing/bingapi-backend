@@ -10,6 +10,7 @@ import com.abing.model.request.InvokeRecordRequest;
 import com.abing.model.request.InvokeRequest;
 import com.abing.model.vo.InvokeMenuVO;
 import com.abing.model.vo.InvokeRecordVO;
+import com.abing.model.vo.InvokeVO;
 import com.abing.service.InvokeRecordService;
 import com.abing.service.InvokeService;
 import com.abing.utils.ThrowUtils;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author CaptainBing
@@ -36,8 +38,9 @@ public class InvokeRecordController {
     @Resource
     private InvokeRecordService invokeRecordService;
 
+
     @PostMapping("/another")
-    public BaseResponse<InvokeRequest> invokeAnotherInterface(@RequestBody InvokeRequest invokeRequest){
+    public BaseResponse<InvokeVO> invokeAnotherInterface(@RequestBody InvokeRequest invokeRequest){
         return ResultUtils.success(invokeService.invokeAnotherInterface(invokeRequest));
     }
 
@@ -51,6 +54,20 @@ public class InvokeRecordController {
         return ResultUtils.success(invokeRecordService.getInvokeRecordById(id));
     }
 
+    @GetMapping("/record/copy")
+    public BaseResponse<Boolean> copyInvokeRecordById(@RequestParam(value = "id",required = false) String id){
+        return ResultUtils.success(invokeRecordService.copyInvokeRecordById(id));
+    }
+
+    @PostMapping("/record/recover")
+    public BaseResponse<Boolean> recoverInvokeRecordById(@RequestBody InvokeRecordRequest invokeRecordRequest){
+        return ResultUtils.success(invokeRecordService.recoverInvokeRecord(invokeRecordRequest));
+    }
+
+    @PostMapping("/record/update")
+    public BaseResponse<Boolean> updateInvokeRecordById(@RequestBody InvokeRecordRequest invokeRecordRequest){
+        return ResultUtils.success(invokeRecordService.updateInvokeRecordById(invokeRecordRequest));
+    }
 
 
     @GetMapping ("/menu/get")
@@ -67,7 +84,7 @@ public class InvokeRecordController {
     }
 
     @GetMapping ("/menu/delete")
-    public BaseResponse<Boolean> deleteMenu(@RequestParam("id") String id){
+    public BaseResponse<Boolean> deleteMenu(@RequestParam(value = "id",required = false) String id){
         return ResultUtils.success(invokeRecordService.deleteMenu(id));
 
     }
@@ -87,6 +104,12 @@ public class InvokeRecordController {
     @GetMapping("/qq")
     public BaseResponse<String> getQQImage(QQRequest qqRequest){
         return ResultUtils.success(invokeService.fetchQQAvatar(qqRequest));
+    }
+
+    @GetMapping("/test")
+    public BaseResponse<String> test(@RequestParam(value = "userName",required = false) String userName,
+                                     @RequestParam(value = "age",required = false) String age){
+        return ResultUtils.success("userName:" + userName + " age:" + age);
     }
 
 }
