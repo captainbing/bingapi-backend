@@ -28,6 +28,8 @@ public class BingApiClient {
 
     private String secretKey;
 
+    private static String SIMULATE_HOST = "http://localhost:9527";
+
     /**
      * 转换汉字为拼音
      * @param chinese
@@ -35,26 +37,50 @@ public class BingApiClient {
      */
     public String convertChinese2Pinyin(String chinese){
 
-        String url = "http://localhost:9527/sys/simulate/convert";
-        Map<String,String> headerMap = new HashMap<>(4);
-        headerMap.put("accessKey",accessKey);
-        headerMap.put("nonce", RandomUtil.randomNumbers(4));
-        headerMap.put("body", "{userName:\"熊炳忠\"}");
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        headerMap.put("timestamp",timestamp);
-        String sign = SignUtils.genSign(timestamp, secretKey);
-        headerMap.put("sign", sign);
+        String url = SIMULATE_HOST + "/sys/simulate/convert";
 
         Map<String,String> paramMap = new HashMap<>();
         paramMap.put("chinese",chinese);
         String body = HttpRequest.of(url)
                 .method(Method.GET)
-                .addHeaders(headerMap)
+                .addHeaders(this.getHeaderMap())
                 .formStr(paramMap)
                 .execute()
                 .body();
         log.info("body ===> {}",body);
         return body;
+    }
+
+    /**
+     * 获取QQ头像
+     * @param qq
+     * @return
+     */
+    public String fetchQQAvatar(String qq){
+        String url = SIMULATE_HOST + "/sys/simulate/convert";
+
+        Map<String,String> paramMap = new HashMap<>();
+        paramMap.put("qq",qq);
+        String body = HttpRequest.of(url)
+                .method(Method.GET)
+                .addHeaders(this.getHeaderMap())
+                .formStr(paramMap)
+                .execute()
+                .body();
+        log.info("body ===> {}",body);
+        return body;
+    }
+
+
+    private Map<String,String> getHeaderMap(){
+        Map<String,String> headerMap = new HashMap<>(4);
+        headerMap.put("accessKey",accessKey);
+        headerMap.put("nonce", RandomUtil.randomNumbers(4));
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        headerMap.put("timestamp",timestamp);
+        String sign = SignUtils.genSign(timestamp, secretKey);
+        headerMap.put("sign", sign);
+        return headerMap;
     }
 
 }

@@ -166,4 +166,10 @@ public interface UserService extends IService<User> {
      * @return
      */
     UserVO getUserVOById(User user);
+
+    /**
+     * 重置密钥
+     * @return
+     */
+    UserVO resetEncryptKey();
 }

@@ -18,7 +18,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -52,10 +51,10 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
         }
         List<InvokeRecord> allMenuByUserId = this.list(new QueryWrapper<InvokeRecord>()
                 .lambda()
-                .eq(InvokeRecord::getUserId, TokenUtils.getUserId()));
+                .eq(InvokeRecord::getUserId, TokenUtils.getId()));
         List<InvokeRecord> pidList = this.list(new QueryWrapper<InvokeRecord>()
                 .lambda()
-                .eq(InvokeRecord::getUserId, TokenUtils.getUserId())
+                .eq(InvokeRecord::getUserId, TokenUtils.getId())
                 .eq(InvokeRecord::getParentId, invokeRecord.getId()));
         List<String> res = new ArrayList<>();
         res.add(invokeRecord.getId());
@@ -109,7 +108,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
 
         List<InvokeRecord> source = this.list(new QueryWrapper<InvokeRecord>()
                 .lambda()
-                .eq(InvokeRecord::getUserId,TokenUtils.getUserId()));
+                .eq(InvokeRecord::getUserId,TokenUtils.getId()));
         ThrowUtils.throwIf(source == null,ErrorCode.OPERATION_ERROR);
         List<InvokeMenuVO> invokeMenuVOList = source.stream().map(item -> {
             InvokeMenuVO invokeMenuVO = new InvokeMenuVO();
@@ -135,7 +134,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
     public boolean addMenu(InvokeRecord invokeRecord) {
         ThrowUtils.throwIf(StringUtils.isAnyEmpty(invokeRecord.getTitle(),invokeRecord.getId()),ErrorCode.PARAMS_ERROR);
         InvokeRecord target = new InvokeRecord();
-        target.setUserId(TokenUtils.getUserId());
+        target.setUserId(TokenUtils.getId());
         target.setTitle(invokeRecord.getTitle());
         target.setParentId(invokeRecord.getId());
         return this.save(target);
@@ -163,7 +162,7 @@ public class InvokeInterfaceServiceImpl extends ServiceImpl<InvokeRecordMapper, 
         invokeRecord.setRequestUrl(invokeRecordRequest.getRequestUrl());
         invokeRecord.setRequestMethod(invokeRecordRequest.getRequestMethod());
         invokeRecord.setParentId(invokeRecordRequest.getParentId());
-        invokeRecord.setUserId(TokenUtils.getUserId());
+        invokeRecord.setUserId(TokenUtils.getId());
         invokeRecord.setType(ResourceTypeEnum.FILE.getCode());
         invokeRecord.setRequestParam(requestParam);
         invokeRecord.setRequestHeader(requestHeader);

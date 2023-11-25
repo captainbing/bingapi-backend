@@ -39,7 +39,7 @@ public class SimulateServiceImpl implements SimulateService {
             return String.format(SearchConstant.QQ_AVATAR_URL, qq,size);
         }
         if (!(PX_40.equals(sizeEnum) || PX_60.equals(sizeEnum) || PX_140.equals(sizeEnum) || PX_640.equals(sizeEnum))){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"图片尺寸不符合要求");
         }
         return String.format(SearchConstant.QQ_AVATAR_URL, qq,size);
     }

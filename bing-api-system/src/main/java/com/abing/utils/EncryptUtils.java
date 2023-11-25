@@ -1,5 +1,7 @@
 package com.abing.utils;
 
+import cn.hutool.core.util.RandomUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import com.abing.constant.UserConstant;
 import org.springframework.util.DigestUtils;
 
@@ -16,8 +18,17 @@ public class EncryptUtils {
      * @param password
      * @return
      */
-    public static String enCryptPasswordMd5(String password){
+    public static String genEncryptPasswordMd5(String password){
         return DigestUtils.md5DigestAsHex((UserConstant.SALT + password).getBytes());
+    }
+
+    /**
+     * 生成密钥
+     * @param userAccount
+     * @return
+     */
+    public static String genEncryptKeyMd5(String userAccount){
+        return DigestUtil.md5Hex(UserConstant.SALT + userAccount + RandomUtil.randomNumbers(8));
     }
 
 }

@@ -1,13 +1,10 @@
 package com.abing.service;
 
 import com.abing.model.dto.search.QQRequest;
-import com.abing.model.request.InvokeRecordRequest;
 import com.abing.model.request.InvokeRequest;
-import com.abing.model.vo.InvokeMenuVO;
 import com.abing.model.vo.InvokeVO;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import java.util.Map;
 
 /**
  * @Author CaptainBing
@@ -21,7 +18,7 @@ public interface InvokeService {
      * @param invokeRequest
      * @return
      */
-    InvokeVO invokeAnotherInterface(InvokeRequest invokeRequest);
+    InvokeVO invokeInterface(InvokeRequest invokeRequest);
 
     /**
      * 获取QQ头像地址
@@ -30,4 +27,27 @@ public interface InvokeService {
      */
     String fetchQQAvatar(QQRequest qqRequest);
 
+
+    /**
+     * 调用通用接口
+     * @param requestUrl
+     * @param method
+     * @param requestParam
+     * @param requestHeader
+     * @param requestBody
+     * @return
+     */
+    InvokeVO invokeAnotherInterface(String requestUrl, String method, Map<String, Object> requestParam, Map<String, String> requestHeader, String requestBody);
+
+
+    /**
+     * 调用本地实现的功能接口
+     * @param requestUrl
+     * @param method
+     * @param requestParam
+     * @param requestHeader
+     * @param requestBody
+     * @return
+     */
+    InvokeVO invokeNativeInterface(String requestUrl, String method, Map<String, Object> requestParam, Map<String, String> requestHeader, String requestBody);
 }

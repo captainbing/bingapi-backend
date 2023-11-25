@@ -3,7 +3,6 @@ package com.abing.controller;
 import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
-import com.abing.exception.BusinessException;
 import com.abing.model.domain.InvokeRecord;
 import com.abing.model.dto.search.QQRequest;
 import com.abing.model.request.InvokeRecordRequest;
@@ -14,15 +13,11 @@ import com.abing.model.vo.InvokeVO;
 import com.abing.service.InvokeRecordService;
 import com.abing.service.InvokeService;
 import com.abing.utils.ThrowUtils;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Connection;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author CaptainBing
@@ -31,17 +26,16 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/invoke")
+@RequiredArgsConstructor
 public class InvokeRecordController {
-    @Resource
-    private InvokeService invokeService;
+    private final InvokeService invokeService;
 
-    @Resource
-    private InvokeRecordService invokeRecordService;
+    private final InvokeRecordService invokeRecordService;
 
 
     @PostMapping("/another")
     public BaseResponse<InvokeVO> invokeAnotherInterface(@RequestBody InvokeRequest invokeRequest){
-        return ResultUtils.success(invokeService.invokeAnotherInterface(invokeRequest));
+        return ResultUtils.success(invokeService.invokeInterface(invokeRequest));
     }
 
     @PostMapping("/record/add")

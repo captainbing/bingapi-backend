@@ -50,6 +50,9 @@ public class UserController {
         if (user.getId() == null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        if (user.getUserAccount() != null && Validator.isEmail(user.getUserAccount())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"邮箱不合法");
+        }
         return ResultUtils.success(userService.updateById(user));
     }
 
@@ -138,6 +141,11 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码必须设置为6位以上");
         }
         return ResultUtils.success(userService.modifyUserPassword(modifyPasswordRequest,request));
+    }
+
+    @GetMapping("/reset")
+    public BaseResponse<UserVO> resetEncryptKey(){
+        return ResultUtils.success(userService.resetEncryptKey());
     }
 
 }

@@ -1,7 +1,5 @@
 package com.abing.service.impl;
 
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.crypto.digest.DigestUtil;
 import com.abing.common.ErrorCode;
 import com.abing.constant.UserConstant;
 import com.abing.exception.BusinessException;
@@ -12,7 +10,10 @@ import com.abing.model.vo.LoginUserVO;
 import com.abing.model.vo.UserVO;
 import com.abing.utils.CaptchaUtils;
 import com.abing.utils.EncryptUtils;
+import com.abing.utils.ThrowUtils;
+import com.abing.utils.TokenUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -57,7 +58,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public UserVO userLogin(User user, HttpServletRequest request) {
-        String encryptPassword = EncryptUtils.enCryptPasswordMd5(user.getUserPassword());
+        String encryptPassword = EncryptUtils.genEncryptPasswordMd5(user.getUserPassword());
         User existUser = userMapper.selectOne(new QueryWrapper<User>()
                 .lambda()
                 .eq(User::getUserAccount, user.getUserAccount())
@@ -91,9 +92,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 不存在当前用户先注册
         User user = new User();
         user.setUserAccount(userAccount);
-        user.setUserPassword(EncryptUtils.enCryptPasswordMd5(sessionCaptcha));
-        String accessKey = DigestUtil.md5Hex(UserConstant.SALT + userAccount + RandomUtil.randomNumbers(5));
-        String secretKey = DigestUtil.md5Hex(UserConstant.SALT + userAccount + RandomUtil.randomNumbers(8));
+        user.setUserPassword(EncryptUtils.genEncryptPasswordMd5(sessionCaptcha));
+        String accessKey = EncryptUtils.genEncryptKeyMd5(userAccount);
+        String secretKey = EncryptUtils.genEncryptKeyMd5(userAccount);
         user.setAccessKey(accessKey);
         user.setSecretKey(secretKey);;
         user.setCreateTime(new Date());
@@ -148,7 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         User user = new User();
         user.setUserAccount(userAccount);
-        String encryptPassword = EncryptUtils.enCryptPasswordMd5(sessionCaptcha);
+        String encryptPassword = EncryptUtils.genEncryptPasswordMd5(sessionCaptcha);
         user.setUserPassword(encryptPassword);
         int count = userMapper.insert(user);
         return count;
@@ -359,7 +360,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public Integer modifyUserPassword(ModifyPasswordRequest modifyPasswordRequest,HttpServletRequest request) {
-        String oldPassword = EncryptUtils.enCryptPasswordMd5(modifyPasswordRequest.getOldPassword());
+        String oldPassword = EncryptUtils.genEncryptPasswordMd5(modifyPasswordRequest.getOldPassword());
         User loginUser = getLoginUser(request);
         User existUser = userMapper.selectOne(new QueryWrapper<User>()
                 .lambda()
@@ -371,7 +372,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (!modifyPasswordRequest.getNewPassword().equals(modifyPasswordRequest.getCheckNewPassword())){
             throw new BusinessException(ErrorCode.OPERATION_ERROR,"密码不一致，请稍后再试");
         }
-        String newPassword = EncryptUtils.enCryptPasswordMd5(modifyPasswordRequest.getCheckNewPassword());
+        String newPassword = EncryptUtils.genEncryptPasswordMd5(modifyPasswordRequest.getCheckNewPassword());
         loginUser.setUserPassword(newPassword);
         int count = userMapper.updateById(loginUser);
         // TODO 发送邮件
@@ -388,6 +389,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         UserVO userVO = new UserVO();
         BeanUtils.copyProperties(originUser,userVO);
         return userVO;
+    }
+
+    @Override
+    public UserVO resetEncryptKey() {
+        String id = TokenUtils.getId();
+        String userAccount = TokenUtils.getUserAccount();
+
+        String accessKey = EncryptUtils.genEncryptKeyMd5(userAccount);
+        String secretKey = EncryptUtils.genEncryptKeyMd5(userAccount);
+
+        boolean resetStatus = this.update(new UpdateWrapper<User>()
+                .lambda()
+                .set(User::getAccessKey, accessKey)
+                .set(User::getSecretKey, secretKey)
+                .eq(User::getId,id));
+
+        ThrowUtils.throwIf(!resetStatus,ErrorCode.OPERATION_ERROR,"重置Key失败");
+        User currentUser = this.getById(id);
+        ThrowUtils.throwIf(currentUser == null,ErrorCode.NOT_FOUND_ERROR);
+        return this.getUserVO(currentUser);
     }
 }
 

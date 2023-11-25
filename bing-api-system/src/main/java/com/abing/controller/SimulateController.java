@@ -7,6 +7,7 @@ import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
 import com.abing.exception.BusinessException;
 import com.abing.model.domain.User;
+import com.abing.model.dto.search.QQRequest;
 import com.abing.service.SimulateService;
 import com.abing.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -45,8 +46,8 @@ public class SimulateController {
         String nonce = request.getHeader("nonce");
         String timestamp = request.getHeader("timestamp");
         String sign = request.getHeader("sign");
-        String body = request.getHeader("body");
-        if (StringUtils.isAnyEmpty(accessKey,nonce,timestamp,sign,body)){
+//        String body = request.getHeader("body");
+        if (StringUtils.isAnyEmpty(accessKey,nonce,timestamp,sign)){
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         User user = userService.getOne(new QueryWrapper<User>()
@@ -77,5 +78,12 @@ public class SimulateController {
         }
         return ResultUtils.success(simulateService.convertChinese2Pinyin(chinese));
     }
+
+
+    @GetMapping("/qq")
+    public BaseResponse<String> getQQImage(QQRequest qqRequest){
+        return ResultUtils.success(simulateService.fetchQQAvatar(qqRequest));
+    }
+
 
 }

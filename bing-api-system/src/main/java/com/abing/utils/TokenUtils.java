@@ -1,6 +1,8 @@
 package com.abing.utils;
 
+import com.abing.common.ErrorCode;
 import com.abing.constant.UserConstant;
+import com.abing.exception.BusinessException;
 import com.abing.model.domain.User;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -28,13 +30,13 @@ public class TokenUtils {
      * 获取用户ID
      * @return
      */
-    public static String getUserId(){
+    public static String getId(){
         HttpSession httpSession = getRequest().getSession();
         User user = (User) httpSession.getAttribute(UserConstant.USER_LOGIN_STATE);
         if (user != null){
             return user.getId();
         }
-        return null;
+        throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
     }
 
     /**
@@ -47,7 +49,7 @@ public class TokenUtils {
         if (user != null){
             return user.getUserName();
         }
-        return null;
+        throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
     }
 
 
@@ -61,6 +63,6 @@ public class TokenUtils {
         if (user != null){
             return user.getUserAccount();
         }
-        return null;
+        throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
     }
 }
