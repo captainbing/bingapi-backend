@@ -35,7 +35,7 @@ public class SimulateServiceImpl implements SimulateService {
         String size = qqRequest.getSize();
         AvatarSizeEnum sizeEnum = AvatarSizeEnum.getEnumByValue(size);
         if (size == null){
-            size = "40";
+            size = PX_40.getSize();
             return String.format(SearchConstant.QQ_AVATAR_URL, qq,size);
         }
         if (!(PX_40.equals(sizeEnum) || PX_60.equals(sizeEnum) || PX_140.equals(sizeEnum) || PX_640.equals(sizeEnum))){

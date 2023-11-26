@@ -1,6 +1,9 @@
 package com.abing.utils;
 
-import java.util.Random;
+import cn.hutool.core.util.RandomUtil;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author CaptainBing
@@ -11,17 +14,24 @@ public class CaptchaUtils {
 
     private CaptchaUtils(){}
 
-    public static Random random = new Random();
-
     /**
      * @return 生成六位随机校验码
      */
     public static String random6Captcha(){
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 6; i++) {
-            sb.append(random.nextInt(9));
-        }
-        return sb.toString();
+        return RandomUtil.randomString(6);
+    }
+
+    /**
+     * 转换验证码为Map形式
+     * @param captcha
+     * @return
+     */
+    public static Map<String,Object> convertCaptchaToMap(String captcha){
+
+        Map<String,Object> map = new HashMap<>();
+        List<String> verifyCodes = Arrays.stream(captcha.split("")).collect(Collectors.toList());
+        map.put("verifyCodes",verifyCodes);
+        return map;
     }
 
 }

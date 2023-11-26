@@ -1,5 +1,7 @@
 package com.abing.service.impl;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.abing.common.ErrorCode;
 import com.abing.constant.UserConstant;
 import com.abing.exception.BusinessException;
@@ -21,17 +23,30 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.abing.model.domain.User;
 import com.abing.service.UserService;
 import com.abing.mapper.UserMapper;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.io.File;
+import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.abing.constant.UserConstant.USER_LOGIN_STATE;
@@ -43,13 +58,18 @@ import static com.abing.constant.UserConstant.USER_LOGIN_STATE;
 */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
 
+    private final UserMapper userMapper;
+    private final JavaMailSender javaMailSender;
+    private final Configuration freeMarkerConfiguration;
 
-    @Resource
-    private UserMapper userMapper;
+    private final RedisTemplate<String,String> redisTemplate;
 
+    @Value("${spring.mail.from}")
+    private String from;
 
     /**
      * @param user 用户
@@ -78,7 +98,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public UserVO userLoginByCaptcha(String userAccount, String captcha, HttpServletRequest request) {
-        String sessionCaptcha = (String)request.getSession().getAttribute(userAccount);
+
+//        String sessionCaptcha = (String)request.getSession().getAttribute(userAccount);
+
+        String sessionCaptcha = redisTemplate.opsForValue().get(userAccount);
+        ThrowUtils.throwIf(sessionCaptcha == null,ErrorCode.NO_AUTH_ERROR,"验证码不存在或已过期");
         if (!captcha.equals(sessionCaptcha)){
             throw new BusinessException(ErrorCode.SUCCESS,"验证码不正确，请重新输入");
         }
@@ -87,6 +111,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 .lambda()
                 .eq(User::getUserAccount, userAccount));
         if (existUser != null){
+            request.getSession().setAttribute(USER_LOGIN_STATE,existUser);
             return getUserVO(existUser);
         }
         // 不存在当前用户先注册
@@ -103,6 +128,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (count == 0){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
+        request.getSession().setAttribute(USER_LOGIN_STATE,user);
         return getUserVO(user);
     }
 
@@ -114,16 +140,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public String sendCaptcha(String userAccount, HttpServletRequest request) {
 
-        User existUser = userMapper.selectOne(new QueryWrapper<User>()
-                .lambda()
-                .eq(User::getUserAccount, userAccount));
-        if (existUser != null){
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"邮箱账号已存在");
-        }
+//        User existUser = userMapper.selectOne(new QueryWrapper<User>()
+//                .lambda()
+//                .eq(User::getUserAccount, userAccount));
+//        if (existUser != null){
+//            throw new BusinessException(ErrorCode.OPERATION_ERROR,"邮箱账号已存在");
+//        }
         String captcha = CaptchaUtils.random6Captcha();
+        // TODO 存入Redis中
         request.getSession().setAttribute(userAccount,captcha);
-        // TODO  邮箱发送验证码
+        redisTemplate.opsForValue().set(userAccount,captcha,2, TimeUnit.MINUTES);
+        sendCaptchaMail2SomeBody(userAccount,captcha);
         return captcha;
+    }
+
+    /**
+     * 发送验证码邮件
+     * @param to
+     * @param captcha
+     */
+    private void sendCaptchaMail2SomeBody(String to,String captcha){
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+        String emailTemplatePath = "";
+        try {
+            mimeMessageHelper.setFrom(from);
+            mimeMessageHelper.setTo(to);
+            mimeMessageHelper.setSubject("登录Postwoman 发送验证码");
+            Template template = freeMarkerConfiguration.getTemplate("EmailTemplate.html.ftl");
+            String workDirectory = System.getProperty("user.dir");
+            String emailTemplateParentPath = workDirectory + File.separator + "emailtemplates";
+            if (!FileUtil.exist(emailTemplateParentPath)) {
+                FileUtil.mkdir(emailTemplateParentPath);
+            }
+            emailTemplatePath = emailTemplateParentPath + File.separator + RandomUtil.randomString(10) + "EmailTemplate.html";
+            FileWriter writer = new FileWriter(emailTemplatePath);
+            Map<String, Object> convertCaptchaMap = CaptchaUtils.convertCaptchaToMap(captcha);
+            convertCaptchaMap.put("userName",to);
+            // 生成验证码邮件模板文件
+            template.process(convertCaptchaMap,writer);
+            writer.close();
+            String emailTemplate = FileUtil.readString(emailTemplatePath, StandardCharsets.UTF_8);
+            mimeMessageHelper.setText(emailTemplate,true);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"邮件发送出现问题");
+        }finally {
+            // 删除文件
+            if (FileUtil.exist(emailTemplatePath)) {
+                FileUtil.del(emailTemplatePath);
+            }
+        }
+        javaMailSender.send(mimeMessage);
     }
 
     /**
@@ -202,8 +270,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (userAccount.length() < 4) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号错误");
         }
-        if (userPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        if (userPassword.length() < 6) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码长度至少6位");
         }
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((UserConstant.SALT + userPassword).getBytes());

@@ -1,4 +1,4 @@
-package com.abing;
+package com.abing.service;
 
 import com.abing.model.domain.Quote;
 import com.abing.service.QuoteService;

@@ -8,6 +8,17 @@ spring:
         file-extension: yml
       discovery:
         server-addr: 127.0.0.1:8848
+#  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    # store-type: redis
+    # 30 天过期
+#    timeout: 2592000
+  redis:
+    host: 47.98.123.166
+    port: 6379
+    database: 10
+    password: Dy573367796@redis
+    connect-timeout: 5000
   mail:
     default-encoding: UTF-8     # 默认编码模式
     from: errorbing@163.com
@@ -35,7 +46,7 @@ spring:
   # session 配置
   session:
     # todo 取消注释开启分布式 session（须先配置 Redis）
-    # store-type: redis
+    store-type: redis
     # 30 天过期
     timeout: 2592000
   # 数据库配置
@@ -57,6 +68,9 @@ spring:
     job-store-type: jdbc
     jdbc:
       initialize-schema: never # always m默认每次都会新建表
+  freemarker:
+    enabled: true
+    template-loader-path: classpath:/templates/
 server:
 #  servlet:
 #    context-path: /backend
@@ -110,3 +124,4 @@ bing:
   client:
     access-key: xiongbingzhong
     secret-key: 1234567890
+

@@ -28,7 +28,7 @@ public class UserServiceTest {
                 .lambda()
                 .eq(User::getUserAccount, "750321038@qq.com"));
         if (user != null) {
-            String newPassword = EncryptUtils.enCryptPasswordMd5("750321");
+            String newPassword = EncryptUtils.genEncryptPasswordMd5("750321");
             user.setUserPassword(newPassword);
             assertTrue(userService.updateById(user));
 
