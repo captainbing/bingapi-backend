@@ -1,8 +1,8 @@
 package com.abing.service.impl;
 
+import com.abing.service.QuoteService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.abing.model.domain.Quote;
-import com.abing.service.QuoteService;
 import com.abing.mapper.QuotesMapper;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,6 @@ import java.util.List;
 * @createDate 2023-07-22 17:16:22
 */
 @Service
-@org.apache.dubbo.config.annotation.Service
 public class QuoteServiceImpl extends ServiceImpl<QuotesMapper, Quote>
     implements QuoteService {
     /**

@@ -28,7 +28,7 @@ public class BingApiClient {
 
     private String secretKey;
 
-    private static String SIMULATE_HOST = "http://localhost:9527";
+    private static String SIMULATE_HOST = "http://localhost:9090";
 
     /**
      * 转换汉字为拼音
@@ -57,7 +57,7 @@ public class BingApiClient {
      * @return
      */
     public String fetchQQAvatar(String qq){
-        String url = SIMULATE_HOST + "/sys/simulate/convert";
+        String url = SIMULATE_HOST + "/sys/simulate/qq";
 
         Map<String,String> paramMap = new HashMap<>();
         paramMap.put("qq",qq);

@@ -137,11 +137,15 @@ public class InvokeServiceImpl implements InvokeService {
         InvokeVO invokeVO = new InvokeVO();
 
         switch (anEnum){
+            // TODO 返回类优化
             case HANZI_TO_PINYIN:
                 String convertChinese2Pinyin = bingApiClient.convertChinese2Pinyin((String) requestParam.get("chinese"));
                 invokeVO.setResponseBody(convertChinese2Pinyin);
                 break;
             case FETCH_QQ_AVATAR:
+                String qq = (String) requestParam.get("qq");
+                String qqAvatar = bingApiClient.fetchQQAvatar(qq);
+                invokeVO.setResponseBody(qqAvatar);
                 break;
             default:{}
         }

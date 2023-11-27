@@ -62,40 +62,6 @@ public class SimulateController {
     @GetMapping("/convert")
     public BaseResponse<String> convertChinese2Pinyin(@RequestParam(value = "chinese",required = false) String chinese,
                                                       HttpServletRequest request){
-        String accessKey = request.getHeader("accessKey");
-        String nonce = request.getHeader("nonce");
-        String timestamp = request.getHeader("timestamp");
-        String sign = request.getHeader("sign");
-//        String body = request.getHeader("body");
-        if (StringUtils.isAnyEmpty(accessKey,nonce,timestamp,sign)){
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
-        }
-        User user = userService.getOne(new QueryWrapper<User>()
-                .lambda()
-                .eq(User::getAccessKey, accessKey));
-
-        if (!accessKey.equals(user.getAccessKey())){
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"accessKey不匹配");
-        }
-
-        // TODO 校验nonce唯一字符串
-        if (!(Long.parseLong(nonce) > 1000L)) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"nonce不唯一");
-        }
-
-        // TODO 校验过期时间 与当前时间不能超过5分钟
-        LocalDateTime startTime = LocalDateTimeUtil.of(Long.parseLong(timestamp));
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime minus5MinutesTime = now.minusMinutes(5);
-        int status = startTime.compareTo(minus5MinutesTime);
-        // 大于0则超过五分钟
-        if (status < 0){
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"timestamp已过期");
-        }
-        String serverSign = SignUtils.genSign(timestamp, user.getSecretKey());
-        if (!sign.equals(serverSign)){
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR,"sign不匹配");
-        }
         return ResultUtils.success(simulateService.convertChinese2Pinyin(chinese));
     }
 
@@ -106,6 +72,11 @@ public class SimulateController {
     }
 
 
+    /**
+     * 测试使用
+     * @param message
+     * @return
+     */
     @GetMapping("/mail")
     public BaseResponse<String> sendMail(String message){
 

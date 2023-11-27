@@ -4,7 +4,7 @@ import com.abing.common.BaseResponse;
 import com.abing.common.DeleteRequest;
 import com.abing.common.ResultUtils;
 import com.abing.model.domain.Quote;
-import com.abing.service.QuoteService;
+import com.abing.dubbo.service.QuoteService;
 import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.web.bind.annotation.*;
 

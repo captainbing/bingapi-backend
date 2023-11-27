@@ -1,7 +1,6 @@
 package com.abing.service;
 
 import com.abing.model.domain.Quote;
-import com.abing.service.QuoteService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

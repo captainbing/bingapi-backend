@@ -16,7 +16,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @SpringBootApplication
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 @MapperScan("com.abing.mapper")
-@EnableDubbo(scanBasePackages = {"com.abing.service.impl"})
+@EnableDubbo(scanBasePackages = {"com.abing.service.dubbo"})
 @EnableDiscoveryClient
 @EnableKnife4j
 public class SystemApplication {

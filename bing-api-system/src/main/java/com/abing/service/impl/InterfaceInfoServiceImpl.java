@@ -1,5 +1,6 @@
 package com.abing.service.impl;
 
+import com.abing.service.InterfaceInfoService;
 import com.abing.model.domain.User;
 import com.abing.model.dto.interfaceinfo.InterfaceInfoDTO;
 import com.abing.model.dto.interfaceinfo.SearchInterfaceRequest;
@@ -12,12 +13,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.abing.model.domain.InterfaceInfo;
-import com.abing.service.InterfaceInfoService;
 import com.abing.mapper.InterfaceInfoMapper;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,13 +28,14 @@ import java.util.stream.IntStream;
 * @createDate 2023-07-22 17:15:22
 */
 @Service
-@org.apache.dubbo.config.annotation.Service
+@RequiredArgsConstructor
 public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, InterfaceInfo>
-    implements InterfaceInfoService{
-    @Resource
-    private UserInterfaceInfoService userInterfaceInfoService;
-    @Resource
-    private InterfaceInfoMapper interfaceInfoMapper;
+    implements InterfaceInfoService {
+
+
+    private final UserInterfaceInfoService userInterfaceInfoService;
+
+    private final InterfaceInfoMapper interfaceInfoMapper;
     /**
      * @return
      */

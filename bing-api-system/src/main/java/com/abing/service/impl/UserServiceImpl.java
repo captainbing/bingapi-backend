@@ -147,7 +147,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 //            throw new BusinessException(ErrorCode.OPERATION_ERROR,"邮箱账号已存在");
 //        }
         String captcha = CaptchaUtils.random6Captcha();
-        // TODO 存入Redis中
         request.getSession().setAttribute(userAccount,captcha);
         redisTemplate.opsForValue().set(userAccount,captcha,2, TimeUnit.MINUTES);
         sendCaptchaMail2SomeBody(userAccount,captcha);
