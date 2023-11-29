@@ -1,27 +1,39 @@
 package com.abing.filter;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import com.abing.api.utils.SignUtils;
 import com.abing.dubbo.service.InterfaceInfoDubboService;
 import com.abing.dubbo.service.UserDubboService;
+import com.abing.dubbo.service.UserInterfaceInfoDubboService;
 import com.abing.model.domain.User;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
+import org.reactivestreams.Publisher;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
+import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -31,13 +43,26 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Component
-public class CustomGlobalFilter implements GlobalFilter {
+@RequiredArgsConstructor
+public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
     @Reference
     private InterfaceInfoDubboService interfaceInfoDubboService;
-
     @Reference
     private UserDubboService userDubboService;
+
+    @Reference
+    private UserInterfaceInfoDubboService userInterfaceInfoDubboService;
+
+    private final RedisRateLimiter redisRateLimiter;
+
+    /**
+     * 白名单
+     */
+
+    @Value("${ipcontrol.white}")
+    public List<String> IP_WHITE_LIST;
+//    public static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -53,8 +78,8 @@ public class CustomGlobalFilter implements GlobalFilter {
 
         String id = request.getId();
         HttpMethod method = request.getMethod();
-        String sourceAddress = request.getLocalAddress().getHostString();
-        String remoteAddress = request.getRemoteAddress().getHostString();
+        String sourceAddress = Objects.requireNonNull(request.getLocalAddress()).getHostString();
+        String remoteAddress = Objects.requireNonNull(request.getRemoteAddress()).getHostString();
         String path = request.getPath().value();
         MultiValueMap<String, String> queryParams = request.getQueryParams();
         log.info("请求唯一标识:{}",id);
@@ -67,24 +92,97 @@ public class CustomGlobalFilter implements GlobalFilter {
         ServerHttpResponse response = exchange.getResponse();
 
         // 2.访问控制 黑白名单
+
+        if (!IP_WHITE_LIST.contains(sourceAddress)){
+            return handleNoAuth(response);
+        }
         // 3.用户鉴权
         boolean checkInvokeInterfaceAuth = checkInvokeInterfaceAuth(request);
         if (!checkInvokeInterfaceAuth){
-            response.setStatusCode(HttpStatus.FORBIDDEN);
-            return response.setComplete();
+            return handleNoAuth(response);
         }
         // 4.请求的模拟接口是否存在
         // 5.请求转发调用模拟接口
-        Mono<Void> filter = chain.filter(exchange);
+//        Mono<Void> filter = chain.filter(exchange);
         // 6.响应日志
+        return handleResponse(exchange, chain);
         // 7.调用成功 接口次数加1
         // 8.调用失败 错误返回
-        log.info("Gateway Interceptor is come out");
-        response.setStatusCode(HttpStatus.FORBIDDEN);
-        return response.setComplete();
+//        log.info("Gateway Interceptor is come out");
+//        return handleNoAuth(response);
 
 //        return filter;
 
+    }
+
+
+    /**
+     * 装饰器模式打印响应日志
+     * @param exchange
+     * @param chain
+     * @return
+     */
+    private Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain){
+
+        try {
+            ServerHttpResponse originalResponse = exchange.getResponse();
+            DataBufferFactory bufferFactory = originalResponse.bufferFactory();
+            HttpStatus statusCode = originalResponse.getStatusCode();
+            if(statusCode == HttpStatus.OK){
+                ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
+
+                    /**
+                     * 等转发的方法调用完才会执行
+                     * @param body the body content publisher
+                     * @return
+                     */
+                    @Override
+                    public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+                        log.info("body instanceof Flux: {}", (body instanceof Flux));
+                        if (body instanceof Flux) {
+                            Flux<? extends DataBuffer> fluxBody = Flux.from(body);
+                            //
+                            return super.writeWith(fluxBody.map(dataBuffer -> {
+                                byte[] content = new byte[dataBuffer.readableByteCount()];
+                                dataBuffer.read(content);
+                                //释放掉内存
+                                DataBufferUtils.release(dataBuffer);
+                                // 构建日志
+                                StringBuilder sb2 = new StringBuilder(200);
+                                sb2.append("<--- {} {} \n");
+                                List<Object> rspArgs = new ArrayList<>();
+                                rspArgs.add(originalResponse.getStatusCode());
+                                //rspArgs.add(requestUrl);
+                                String data = new String(content, StandardCharsets.UTF_8);//data
+                                sb2.append(data);
+                                log.info(sb2.toString(), rspArgs.toArray());
+                                log.info("<-- {} {}\n", originalResponse.getStatusCode(), data);
+                                return bufferFactory.wrap(content);
+                            }));
+                        } else {
+                            log.error("<--- {} 响应code异常", getStatusCode());
+                        }
+                        return super.writeWith(body);
+                    }
+                };
+                return chain.filter(exchange.mutate().response(decoratedResponse).build());
+            }
+            return chain.filter(exchange);//降级处理返回数据
+        }catch (Exception e){
+            log.error("gateway log exception.\n" + e);
+            return chain.filter(exchange);
+        }
+
+    }
+
+    /**
+     * 拒绝请求
+     * @param response
+     * @return
+     */
+    private Mono<Void> handleNoAuth(ServerHttpResponse response) {
+        response.setStatusCode(HttpStatus.FORBIDDEN);
+        return response.setComplete();
     }
 
     /**
@@ -115,12 +213,10 @@ public class CustomGlobalFilter implements GlobalFilter {
         }
 
         // TODO 校验过期时间 与当前时间不能超过5分钟
-        LocalDateTime startTime = LocalDateTimeUtil.of(Long.parseLong(timestamp));
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime minus5MinutesTime = now.minusMinutes(5);
-        int status = startTime.compareTo(minus5MinutesTime);
-        // 大于0则超过五分钟
-        if (status < 0){
+        long currentTime = System.currentTimeMillis() / 1000;
+        final long FIVE_MINUTES = 60 * 5;
+        long historyTime = Long.parseLong(timestamp) / 1000;
+        if ((currentTime - historyTime) > FIVE_MINUTES){
             return false;
         }
         String serverSign = SignUtils.genSign(timestamp, user.getSecretKey());
@@ -128,5 +224,13 @@ public class CustomGlobalFilter implements GlobalFilter {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

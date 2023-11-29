@@ -22,12 +22,12 @@ public class UserInterfaceInfo implements Serializable {
     /**
      * 调用用户 id
      */
-    private Long userId;
+    private String userId;
 
     /**
      * 接口 id
      */
-    private Long interfaceInfoId;
+    private String interfaceInfoId;
 
     /**
      * 总调用次数
