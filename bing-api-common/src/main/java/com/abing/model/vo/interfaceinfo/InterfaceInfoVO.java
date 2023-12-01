@@ -1,4 +1,4 @@
-package com.abing.model.vo;
+package com.abing.model.vo.interfaceinfo;
 
 import lombok.Data;
 import java.util.List;

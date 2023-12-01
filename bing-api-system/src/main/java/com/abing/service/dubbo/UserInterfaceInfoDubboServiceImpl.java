@@ -40,7 +40,7 @@ public class UserInterfaceInfoDubboServiceImpl extends ServiceImpl<UserInterface
             currentUserInterfaceInfo = new UserInterfaceInfo();
             currentUserInterfaceInfo.setUserId(userId);
             currentUserInterfaceInfo.setInterfaceInfoId(interfaceInfoId);
-            currentUserInterfaceInfo.setTotalNum(0);
+            currentUserInterfaceInfo.setTotalNum(0L);
             currentUserInterfaceInfo.setLeftNum(50);
             currentUserInterfaceInfo.setStatus(0);
             currentUserInterfaceInfo.setCreateTime(new Date());

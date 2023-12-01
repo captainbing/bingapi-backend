@@ -25,6 +25,7 @@ public interface InterfaceInfoMapper extends BaseMapper<InterfaceInfo> {
 
     List<InterfaceInfoDTO> searchInterfacesByName(InterfaceInfoDTO interfaceRequest);
 
+
 }
 
 

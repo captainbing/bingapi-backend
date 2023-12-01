@@ -1,27 +1,22 @@
-package com.abing.model.domain;
+package com.abing.model.vo.interfaceinfo;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Date;
+import com.abing.model.domain.InterfaceInfo;
 import lombok.Data;
-import org.springframework.cglib.core.Local;
-import org.springframework.format.annotation.DateTimeFormat;
+
+import java.util.Date;
+import java.util.List;
 
 /**
- * 接口信息
- * @TableName interface_info
+ * @Author CaptainBing
+ * @Date 2023/12/1 21:01
+ * @Description 接口描述 抽屉 TODO 改一个好听的名字
  */
-@TableName(value ="interface_info")
 @Data
-public class InterfaceInfo implements Serializable {
+public class InterfaceInfoDrawer {
+
     /**
      * 主键
      */
-    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -42,7 +37,9 @@ public class InterfaceInfo implements Serializable {
     /**
      * 请求参数
      */
-    private String requestParam;
+    private List<RequestParam> requestParam;
+
+
 
     /**
      * 请求头
@@ -55,9 +52,9 @@ public class InterfaceInfo implements Serializable {
     private String responseHeader;
 
     /**
-     * 返回参数 json
+     * 返回参数
      */
-    private String responseParam;
+    private List<ResponseParam> responseParam;
 
     /**
      * 接口状态（0-关闭，1-开启）
@@ -92,10 +89,7 @@ public class InterfaceInfo implements Serializable {
     /**
      * 是否删除(0-未删, 1-已删)
      */
-    @TableField
     private Integer deleted;
 
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
 
 }

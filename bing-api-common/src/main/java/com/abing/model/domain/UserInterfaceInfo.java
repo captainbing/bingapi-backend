@@ -32,7 +32,7 @@ public class UserInterfaceInfo implements Serializable {
     /**
      * 总调用次数
      */
-    private Integer totalNum;
+    private Long totalNum;
 
     /**
      * 剩余调用次数

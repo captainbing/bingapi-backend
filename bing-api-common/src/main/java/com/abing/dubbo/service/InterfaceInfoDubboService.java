@@ -1,14 +1,7 @@
 package com.abing.dubbo.service;
 
 import com.abing.model.domain.InterfaceInfo;
-import com.abing.model.domain.User;
-import com.abing.model.dto.interfaceinfo.InterfaceInfoDTO;
-import com.abing.model.dto.interfaceinfo.SearchInterfaceRequest;
-import com.abing.model.vo.InterfaceInfoVO;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-
-import java.util.List;
 
 /**
 * @author 阿炳亿点点帅
@@ -17,6 +10,13 @@ import java.util.List;
 */
 public interface InterfaceInfoDubboService extends IService<InterfaceInfo> {
 
+
+    /**
+     * 根据请求路径获取接口信息
+     * @param url
+     * @return
+     */
+    InterfaceInfo getInterfaceInfoByUrl(String url);
 
 
 }

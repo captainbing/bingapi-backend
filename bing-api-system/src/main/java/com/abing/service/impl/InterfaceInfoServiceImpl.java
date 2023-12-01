@@ -1,13 +1,19 @@
 package com.abing.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
+import com.abing.common.ErrorCode;
+import com.abing.exception.BusinessException;
+import com.abing.mapper.UserInterfaceInfoMapper;
+import com.abing.model.domain.UserInterfaceInfo;
+import com.abing.model.vo.interfaceinfo.*;
 import com.abing.service.InterfaceInfoService;
 import com.abing.model.domain.User;
 import com.abing.model.dto.interfaceinfo.InterfaceInfoDTO;
 import com.abing.model.dto.interfaceinfo.SearchInterfaceRequest;
 import com.abing.model.enums.InterfaceInfoEnum;
-import com.abing.model.vo.InterfaceInfoVO;
-import com.abing.model.vo.ProList;
 import com.abing.service.UserInterfaceInfoService;
+import com.abing.utils.ThrowUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -16,9 +22,12 @@ import com.abing.model.domain.InterfaceInfo;
 import com.abing.mapper.InterfaceInfoMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -36,6 +45,8 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
     private final UserInterfaceInfoService userInterfaceInfoService;
 
     private final InterfaceInfoMapper interfaceInfoMapper;
+
+    private final UserInterfaceInfoMapper userInterfaceInfoMapper;
     /**
      * @return
      */
@@ -158,6 +169,51 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
     public Boolean removeInterfaceInfoBatch(List<Long> ids) {
         return this.removeBatchByIds(ids);
     }
+
+    @Override
+    public InterfaceInfoDrawer getInterfaceInfoById(Long id) {
+
+        ThrowUtils.throwIf(id == null, ErrorCode.PARAMS_ERROR);
+
+        InterfaceInfo interfaceInfo = this.getById(id);
+
+        ThrowUtils.throwIf(interfaceInfo == null, ErrorCode.NOT_FOUND_ERROR);
+
+        InterfaceInfoDrawer interfaceInfoDrawer = new InterfaceInfoDrawer();
+        BeanUtils.copyProperties(interfaceInfo,interfaceInfoDrawer);
+
+        String requestParam = interfaceInfo.getRequestParam();
+        String responseParam = interfaceInfo.getResponseParam();
+        List<RequestParam> requestParams = JSONUtil.toList(requestParam, RequestParam.class);
+        List<ResponseParam> responseParams = JSONUtil.toList(responseParam, ResponseParam.class);
+
+        interfaceInfoDrawer.setRequestParam(requestParams);
+        interfaceInfoDrawer.setResponseParam(responseParams);
+
+        return interfaceInfoDrawer;
+    }
+
+    @Override
+    public List<InterfaceInfoAnalysisVO> listTopInterfaceInfo() {
+
+        List<UserInterfaceInfo> userInterfaceInfoList = userInterfaceInfoMapper.listTopInterfaceInfo(3L);
+        Map<String, List<UserInterfaceInfo>> userInterfaceInfoMap = userInterfaceInfoList.stream()
+                .collect(Collectors.groupingBy(UserInterfaceInfo::getInterfaceInfoId));
+        List<InterfaceInfo> list = this.list(new QueryWrapper<InterfaceInfo>()
+                .lambda()
+                .in(InterfaceInfo::getId, userInterfaceInfoMap.keySet()));
+        if (CollectionUtil.isEmpty(list)){
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        List<InterfaceInfoAnalysisVO> analysisVOList = list.stream().map(interfaceInfo -> {
+            InterfaceInfoAnalysisVO interfaceInfoAnalysisVO = new InterfaceInfoAnalysisVO();
+            BeanUtils.copyProperties(interfaceInfo, interfaceInfoAnalysisVO);
+            interfaceInfoAnalysisVO.setTotalNum(userInterfaceInfoMap.get(String.valueOf(interfaceInfo.getId())).get(0).getTotalNum());
+            return interfaceInfoAnalysisVO;
+        }).collect(Collectors.toList());
+        return analysisVOList;
+    }
+
 }
 
 

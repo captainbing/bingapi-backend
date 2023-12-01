@@ -4,7 +4,9 @@ import com.abing.model.domain.InterfaceInfo;
 import com.abing.model.domain.User;
 import com.abing.model.dto.interfaceinfo.InterfaceInfoDTO;
 import com.abing.model.dto.interfaceinfo.SearchInterfaceRequest;
-import com.abing.model.vo.InterfaceInfoVO;
+import com.abing.model.vo.interfaceinfo.InterfaceInfoAnalysisVO;
+import com.abing.model.vo.interfaceinfo.InterfaceInfoDrawer;
+import com.abing.model.vo.interfaceinfo.InterfaceInfoVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -44,4 +46,17 @@ public interface InterfaceInfoService extends IService<InterfaceInfo> {
      * @return
      */
     Boolean removeInterfaceInfoBatch(List<Long> ids);
+
+    /**
+     * 根据id获取接口信息
+     * @param id
+     * @return
+     */
+    InterfaceInfoDrawer getInterfaceInfoById(Long id);
+
+    /**
+     * 接口调用前几分析
+     * @return
+     */
+    List<InterfaceInfoAnalysisVO> listTopInterfaceInfo();
 }

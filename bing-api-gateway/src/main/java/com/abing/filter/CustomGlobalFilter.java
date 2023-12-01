@@ -1,9 +1,12 @@
 package com.abing.filter;
 
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.abing.api.utils.SignUtils;
 import com.abing.dubbo.service.InterfaceInfoDubboService;
 import com.abing.dubbo.service.UserDubboService;
 import com.abing.dubbo.service.UserInterfaceInfoDubboService;
+import com.abing.model.domain.InterfaceInfo;
 import com.abing.model.domain.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,23 +77,10 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         log.info("{}","Gateway Interceptor is come in :" + userServiceCount);
 
         ServerHttpRequest request = exchange.getRequest();
-
-        // 1.请求日志
-
-        String id = request.getId();
-        HttpMethod method = request.getMethod();
-        String sourceAddress = Objects.requireNonNull(request.getLocalAddress()).getHostString();
-        String remoteAddress = Objects.requireNonNull(request.getRemoteAddress()).getHostString();
-        String path = request.getPath().value();
-        MultiValueMap<String, String> queryParams = request.getQueryParams();
-        log.info("请求唯一标识:{}",id);
-        log.info("请求方法:{}",method);
-        log.info("本地地址:{}",sourceAddress);
-        log.info("远程地址:{}",remoteAddress);
-        log.info("路径标识:{}",path);
-        log.info("请求参数:{}",queryParams);
-
         ServerHttpResponse response = exchange.getResponse();
+
+        // 1.打印请求日志
+        String sourceAddress = printRequestLog(request);
 
         // 2.访问控制 黑白名单
 
@@ -97,21 +88,62 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             return handleNoAuth(response);
         }
         // 3.用户鉴权
-        boolean checkInvokeInterfaceAuth = checkInvokeInterfaceAuth(request);
-        if (!checkInvokeInterfaceAuth){
+        if (!checkInvokeInterfaceAuth(request)){
             return handleNoAuth(response);
         }
         // 4.请求的模拟接口是否存在
-        // 5.请求转发调用模拟接口
-//        Mono<Void> filter = chain.filter(exchange);
+        if (existsSimulateInterface(request)){
+            return handleNoAuth(response);
+        }
         // 6.响应日志
         return handleResponse(exchange, chain);
-        // 7.调用成功 接口次数加1
-        // 8.调用失败 错误返回
-//        log.info("Gateway Interceptor is come out");
-//        return handleNoAuth(response);
+    }
 
-//        return filter;
+    /**
+     * 校验模拟接口是否存在
+     * @param request
+     */
+    private boolean existsSimulateInterface(ServerHttpRequest request) {
+
+        String url = request.getURI().toString();
+        String method = request.getMethod().toString();
+        int index = !url.contains("?") ? url.length() : url.indexOf("?");
+        String realUrl = url.substring(0, index);
+
+        InterfaceInfo interfaceInfo = interfaceInfoDubboService.getInterfaceInfoByUrl(realUrl);
+        if (interfaceInfo == null) {
+            return false;
+        }
+        if (!interfaceInfo.getMethod().equalsIgnoreCase(method)){
+            return false;
+        }
+
+        return true;
+
+    }
+
+    /**
+     * 打印请求日志
+     * @param request
+     */
+    private String printRequestLog(ServerHttpRequest request) {
+
+        String id = request.getId();
+        String uri = request.getURI().toString();
+        HttpMethod method = request.getMethod();
+        String sourceAddress = Objects.requireNonNull(request.getLocalAddress()).getHostString();
+        String remoteAddress = Objects.requireNonNull(request.getRemoteAddress()).getHostString();
+        String path = request.getPath().value();
+        MultiValueMap<String, String> queryParams = request.getQueryParams();
+        log.info("请求唯一标识:{}",id);
+        log.info("请求uri:{}",uri);
+        log.info("请求方法:{}",method);
+        log.info("本地地址:{}",sourceAddress);
+        log.info("远程地址:{}",remoteAddress);
+        log.info("路径标识:{}",path);
+        log.info("请求参数:{}",queryParams);
+
+        return sourceAddress;
 
     }
 
@@ -148,15 +180,17 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                                 //释放掉内存
                                 DataBufferUtils.release(dataBuffer);
                                 // 构建日志
-                                StringBuilder sb2 = new StringBuilder(200);
-                                sb2.append("<--- {} {} \n");
-                                List<Object> rspArgs = new ArrayList<>();
-                                rspArgs.add(originalResponse.getStatusCode());
-                                //rspArgs.add(requestUrl);
                                 String data = new String(content, StandardCharsets.UTF_8);//data
-                                sb2.append(data);
-                                log.info(sb2.toString(), rspArgs.toArray());
-                                log.info("<-- {} {}\n", originalResponse.getStatusCode(), data);
+
+                                JSONObject jsonObject = JSONUtil.parseObj(data);
+                                Integer code = (Integer) jsonObject.get("code");
+                                // 7.调用成功 接口次数加1
+                                if (HttpStatus.OK.value() == code){
+
+
+                                }else {
+                                    // 8.调用失败 错误返回
+                                }
                                 return bufferFactory.wrap(content);
                             }));
                         } else {
@@ -165,6 +199,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                         return super.writeWith(body);
                     }
                 };
+                // 5.请求转发调用模拟接口
                 return chain.filter(exchange.mutate().response(decoratedResponse).build());
             }
             return chain.filter(exchange);//降级处理返回数据
@@ -200,7 +235,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         if (StringUtils.isAnyEmpty(accessKey,nonce,timestamp,sign)){
             return false;
         }
-        // TODO 获取accessKey
         User user = userDubboService.getUserByAccessKey(accessKey);
 
         if (!accessKey.equals(user.getAccessKey())){

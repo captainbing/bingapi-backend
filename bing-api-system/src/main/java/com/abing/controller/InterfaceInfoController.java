@@ -4,17 +4,19 @@ import com.abing.common.BaseResponse;
 import com.abing.common.DeleteRequest;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
+import com.abing.model.vo.interfaceinfo.InterfaceInfoAnalysisVO;
+import com.abing.model.vo.interfaceinfo.InterfaceInfoDrawer;
 import com.abing.service.InterfaceInfoService;
 import com.abing.exception.BusinessException;
 import com.abing.model.domain.InterfaceInfo;
 import com.abing.model.domain.User;
 import com.abing.model.dto.interfaceinfo.InterfaceInfoDTO;
 import com.abing.model.dto.interfaceinfo.SearchInterfaceRequest;
-import com.abing.model.vo.InterfaceInfoVO;
+import com.abing.model.vo.interfaceinfo.InterfaceInfoVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -24,18 +26,14 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/interface")
+@RequiredArgsConstructor
 public class InterfaceInfoController {
 
-    @Resource
-    private InterfaceInfoService interfaceInfoService;
+    private final InterfaceInfoService interfaceInfoService;
 
-    @GetMapping("/get/{id}")
-    public BaseResponse<InterfaceInfo> getInterfaceInfo(@PathVariable Integer id){
-        return ResultUtils.success(interfaceInfoService.getById(id));
-    }
     @GetMapping("/get")
-    public BaseResponse<InterfaceInfo> getInterfaceInfoById(Integer id){
-        return ResultUtils.success(interfaceInfoService.getById(id));
+    public BaseResponse<InterfaceInfoDrawer> getInterfaceInfoById(Long id){
+        return ResultUtils.success(interfaceInfoService.getInterfaceInfoById(id));
     }
 
     @PostMapping("/save")
@@ -77,11 +75,8 @@ public class InterfaceInfoController {
         return ResultUtils.success(interfaceInfoService.searchInterfacesByName(interfaceRequest));
     }
 
-    @GetMapping("/getInterface")
-    public BaseResponse<InterfaceInfo> getInterfaceById(Long id){
-        if (id == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        return ResultUtils.success(interfaceInfoService.getById(id));
+    @GetMapping("/analysis")
+    public BaseResponse<List<InterfaceInfoAnalysisVO>> listTopInterfaceInfo(){
+        return ResultUtils.success(interfaceInfoService.listTopInterfaceInfo());
     }
 }

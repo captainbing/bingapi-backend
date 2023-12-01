@@ -21,4 +21,8 @@
         totalNum,leftNum,status,
         createTime,updateTime,deleted
     </sql>
+    <select id="listTopInterfaceInfo" resultType="com.abing.model.domain.UserInterfaceInfo">
+        SELECT interfaceInfoId,SUM(totalNum) as totalNum FROM user_interface_info GROUP BY interfaceInfoId
+        ORDER BY totalNum DESC LIMIT #{limit}
+    </select>
 </mapper>
