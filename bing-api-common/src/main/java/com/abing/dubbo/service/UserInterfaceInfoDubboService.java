@@ -14,10 +14,10 @@ public interface UserInterfaceInfoDubboService extends IService<UserInterfaceInf
     /**
      * 调用成功  接口次数 + 1
      * @param userId
-     * @param interfaceId
+     * @param interfaceInfoId
      * @return
      */
-    Boolean invokeCountPlusOne(String userId,String interfaceId);
+    Boolean invokeCountPlusOne(String userId, String interfaceInfoId);
 
 
 }

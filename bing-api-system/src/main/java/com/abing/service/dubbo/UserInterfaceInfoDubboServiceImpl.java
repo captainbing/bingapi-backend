@@ -4,6 +4,7 @@ import com.abing.dubbo.service.UserInterfaceInfoDubboService;
 import com.abing.exception.BusinessException;
 import com.abing.mapper.UserInterfaceInfoMapper;
 import com.abing.model.domain.UserInterfaceInfo;
+import com.abing.utils.TokenUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -28,6 +29,7 @@ public class UserInterfaceInfoDubboServiceImpl extends ServiceImpl<UserInterface
     @Override
     @Transactional(rollbackFor = BusinessException.class)
     public Boolean invokeCountPlusOne(String userId, String interfaceInfoId) {
+
         if (StringUtils.isAnyEmpty(userId,interfaceInfoId)){
             return false;
         }
@@ -50,6 +52,7 @@ public class UserInterfaceInfoDubboServiceImpl extends ServiceImpl<UserInterface
         if (currentUserInterfaceInfo.getLeftNum() < 0){
             return false;
         }
+
         boolean updateInvokeCount = this.update(new UpdateWrapper<UserInterfaceInfo>()
                 .lambda()
                 .set(UserInterfaceInfo::getTotalNum, currentUserInterfaceInfo.getTotalNum() + 1)

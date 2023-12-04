@@ -88,22 +88,24 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             return handleNoAuth(response);
         }
         // 3.用户鉴权
-        if (!checkInvokeInterfaceAuth(request)){
+        User user = checkInvokeInterfaceAuth(request);
+        if (user == null){
             return handleNoAuth(response);
         }
         // 4.请求的模拟接口是否存在
-        if (existsSimulateInterface(request)){
+        InterfaceInfo interfaceInfo = existsSimulateInterface(request);
+        if (interfaceInfo == null){
             return handleNoAuth(response);
         }
         // 6.响应日志
-        return handleResponse(exchange, chain);
+        return handleResponse(exchange, chain,user.getId(),String.valueOf(interfaceInfo.getId()));
     }
 
     /**
      * 校验模拟接口是否存在
      * @param request
      */
-    private boolean existsSimulateInterface(ServerHttpRequest request) {
+    private InterfaceInfo existsSimulateInterface(ServerHttpRequest request) {
 
         String url = request.getURI().toString();
         String method = request.getMethod().toString();
@@ -112,13 +114,13 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
         InterfaceInfo interfaceInfo = interfaceInfoDubboService.getInterfaceInfoByUrl(realUrl);
         if (interfaceInfo == null) {
-            return false;
+            return null;
         }
         if (!interfaceInfo.getMethod().equalsIgnoreCase(method)){
-            return false;
+            return null;
         }
 
-        return true;
+        return interfaceInfo;
 
     }
 
@@ -154,7 +156,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
      * @param chain
      * @return
      */
-    private Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain){
+    private Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain,String userId,String interfaceInfoId){
 
         try {
             ServerHttpResponse originalResponse = exchange.getResponse();
@@ -186,10 +188,13 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                                 Integer code = (Integer) jsonObject.get("code");
                                 // 7.调用成功 接口次数加1
                                 if (HttpStatus.OK.value() == code){
-
-
+                                    Boolean invokeCountPlusOneStatus = userInterfaceInfoDubboService.invokeCountPlusOne(userId, interfaceInfoId);
+                                    if (!invokeCountPlusOneStatus){
+                                        throw new RuntimeException("可用次数减少失败!!!");
+                                    }
                                 }else {
                                     // 8.调用失败 错误返回
+                                    throw new RuntimeException("调用失败 请重试!!!");
                                 }
                                 return bufferFactory.wrap(content);
                             }));
@@ -225,7 +230,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
      * @param request
      * @return
      */
-    private boolean checkInvokeInterfaceAuth(ServerHttpRequest request){
+    private User checkInvokeInterfaceAuth(ServerHttpRequest request){
         HttpHeaders headers = request.getHeaders();
         String accessKey = headers.getFirst("accessKey");
         String nonce = headers.getFirst("nonce");
@@ -233,17 +238,17 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         String sign = headers.getFirst("sign");
 //        String body = request.getHeader("body");
         if (StringUtils.isAnyEmpty(accessKey,nonce,timestamp,sign)){
-            return false;
+            return null;
         }
         User user = userDubboService.getUserByAccessKey(accessKey);
 
         if (!accessKey.equals(user.getAccessKey())){
-            return false;
+            return null;
         }
 
         // TODO 校验nonce唯一字符串
         if (!(Long.parseLong(nonce) > 1000L)) {
-            return false;
+            return null;
         }
 
         // TODO 校验过期时间 与当前时间不能超过5分钟
@@ -251,13 +256,13 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         final long FIVE_MINUTES = 60 * 5;
         long historyTime = Long.parseLong(timestamp) / 1000;
         if ((currentTime - historyTime) > FIVE_MINUTES){
-            return false;
+            return null;
         }
         String serverSign = SignUtils.genSign(timestamp, user.getSecretKey());
         if (!sign.equals(serverSign)){
-            return false;
+            return null;
         }
-        return true;
+        return user;
     }
 
     /**
