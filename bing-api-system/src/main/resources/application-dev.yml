@@ -119,15 +119,15 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
-
+// TODO 接入第三方服务
 bing:
   client:
     access-key: xiongbingzhong
     secret-key: 1234567890
-
+// TODO 设置为自己的
 yuapi:
   client:
-    access-key: sqhseo59pz5dggwajlaklzbcwui2eumy
-    secret-key: tgtezejrb1p9kbqaoypxro80e4bt6d0l
+    access-key: 
+    secret-key: 
 
 
