@@ -1,6 +1,7 @@
 package com.abing.service.impl;
 
 import com.abing.common.ErrorCode;
+import com.abing.exception.BusinessException;
 import com.abing.manager.AiManager;
 import com.abing.mapper.ChartMapper;
 import com.abing.model.domain.Chart;
@@ -61,6 +62,10 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         ThrowUtils.throwIf(answerResponse == null,ErrorCode.OPERATION_ERROR,"AI分析出错");
         final String answerSeparator = "【【【【【";
         String[] answerArray = answerResponse.split(answerSeparator);
+        final int answerLength = 3;
+        if (answerArray.length < answerLength){
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"数据返回生成异常,请重试");
+        }
         String genChart = answerArray[1];
         String genResult = answerArray[2];
 

@@ -4,11 +4,9 @@ import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
 import com.abing.model.domain.Chart;
-import com.abing.model.enums.ChartTypeEnum;
 import com.abing.model.request.chart.GenChartByAiRequest;
 import com.abing.model.vo.chart.ChartVO;
 import com.abing.service.ChartService;
-import com.abing.utils.ExcelUtils;
 import com.abing.utils.ThrowUtils;
 import com.abing.utils.TokenUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -36,21 +34,23 @@ public class ChartController {
     @PostMapping("/gen")
     public BaseResponse<ChartVO> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
                                               GenChartByAiRequest genChartByAiRequest) {
-        return ResultUtils.success(chartService.genChartByAi(genChartByAiRequest,multipartFile));
+        return ResultUtils.success(chartService.genChartByAi(genChartByAiRequest, multipartFile));
     }
 
 
     @GetMapping("/list")
-    public BaseResponse<IPage<Chart>> listChartByPage(Chart chart,
-                                                   @RequestParam(defaultValue = "1") Long current,
-                                                   @RequestParam(defaultValue = "10") Long size) {
+    public BaseResponse<IPage<Chart>> listChartByPage(@RequestParam(defaultValue = "1",required = false) Long current,
+                                                      @RequestParam(defaultValue = "10",required = false) Long size,
+                                                      @RequestParam(value = "name",required = false) String name) {
         String userId = TokenUtils.getId();
         IPage<Chart> page = new Page<>();
         page.setCurrent(current);
         page.setSize(size);
         IPage<Chart> chartPage = chartService.page(page, new QueryWrapper<Chart>()
                 .lambda()
-                .eq(Chart::getUserId, userId));
+                .eq(Chart::getUserId, userId)
+                .like(StringUtils.isNotEmpty(name),Chart::getName,name)
+                .orderByDesc(Chart::getCreateTime));
         return ResultUtils.success(chartPage);
     }
 
@@ -88,6 +88,6 @@ public class ChartController {
         chart.setUpdateTime(new Date());
         return ResultUtils.success(chartService.updateById(chart));
     }
-    
-    
+
+
 }
