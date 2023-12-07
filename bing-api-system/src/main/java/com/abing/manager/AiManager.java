@@ -27,7 +27,8 @@ public class AiManager {
      */
     public String doChat(String message){
         DevChatRequest devChatRequest = new DevChatRequest();
-        devChatRequest.setModelId(1731973374676520962L);
+        long modelId = 1731973374676520962L;
+        devChatRequest.setModelId(modelId);
         devChatRequest.setMessage(message);
         BaseResponse<DevChatResponse> baseResponse = yuCongMingClient.doChat(devChatRequest);
         if (baseResponse == null){
