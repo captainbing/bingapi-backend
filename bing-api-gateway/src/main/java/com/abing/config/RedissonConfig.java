@@ -3,6 +3,7 @@ package com.abing.config;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,7 +13,16 @@ import org.springframework.context.annotation.Configuration;
  * @Description
  */
 @Configuration
+@ConfigurationProperties("spring.redis")
 public class RedissonConfig {
+
+    private String password;
+
+    private Integer database;
+
+    private String host;
+
+    private Integer port;
 
 
     @Bean
@@ -20,9 +30,9 @@ public class RedissonConfig {
 
         Config config = new Config();
         config.useSingleServer()
-                .setAddress("localhost")
-                .setPassword("")
-                .setDatabase(10);
+                .setAddress("redis://" + host + ":" + port)
+                .setPassword(password)
+                .setDatabase(database);
         return Redisson.create(config);
     }
 

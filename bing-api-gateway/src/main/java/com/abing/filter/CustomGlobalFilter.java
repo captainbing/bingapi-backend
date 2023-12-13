@@ -6,6 +6,7 @@ import com.abing.api.utils.SignUtils;
 import com.abing.dubbo.service.InterfaceInfoDubboService;
 import com.abing.dubbo.service.UserDubboService;
 import com.abing.dubbo.service.UserInterfaceInfoDubboService;
+import com.abing.manager.RedisLimiterManager;
 import com.abing.model.domain.InterfaceInfo;
 import com.abing.model.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.reactivestreams.Publisher;
-import org.redisson.api.RRateLimiter;
-import org.redisson.api.RateIntervalUnit;
-import org.redisson.api.RateType;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -39,7 +36,6 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -62,7 +58,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
     /**
      * redisson限流
      */
-    private final RedissonClient redissonClient;
+    private final RedisLimiterManager redisLimiterManager;
 
     /**
      * 白名单
@@ -73,11 +69,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-// 测试
-//        long interfaceCount = interfaceInfoDubboService.count();
-//        log.info("{}","Gateway Interceptor is come in :" + interfaceCount);
-//        long userServiceCount = userDubboService.count();
-//        log.info("{}","Gateway Interceptor is come in :" + userServiceCount);
 
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
@@ -87,22 +78,22 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
         // 2.访问控制 黑白名单
         if (!IP_WHITE_LIST.contains(sourceAddress)){
-            return handleNoAuth(response);
+            return handleNoAuth(response,HttpStatus.NOT_ACCEPTABLE);
         }
         // 3.用户鉴权
         User user = checkInvokeInterfaceAuth(request);
         if (user == null){
-            return handleNoAuth(response);
+            return handleNoAuth(response,HttpStatus.NON_AUTHORITATIVE_INFORMATION);
         }
         // redisson限流操作
-        boolean canOp = doRateLimit(user.getId());
+        boolean canOp = redisLimiterManager.doRateLimit(user.getId());
         if (!canOp){
-            return handleNoAuth(response);
+            return handleNoAuth(response,HttpStatus.TOO_MANY_REQUESTS);
         }
         // 4.请求的模拟接口是否存在
         InterfaceInfo interfaceInfo = existsSimulateInterface(request);
         if (interfaceInfo == null){
-            return handleNoAuth(response);
+            return handleNoAuth(response,HttpStatus.NOT_FOUND);
         }
         // 6.响应日志
         return handleResponse(exchange, chain,user.getId(),String.valueOf(interfaceInfo.getId()));
@@ -227,8 +218,8 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
      * @param response
      * @return
      */
-    private Mono<Void> handleNoAuth(ServerHttpResponse response) {
-        response.setStatusCode(HttpStatus.FORBIDDEN);
+    private Mono<Void> handleNoAuth(ServerHttpResponse response,HttpStatus httpStatus) {
+        response.setStatusCode(httpStatus);
         return response.setComplete();
     }
 
@@ -253,12 +244,14 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             return null;
         }
 
-        // TODO 校验nonce唯一字符串
-        if (!(Long.parseLong(nonce) > 1000L)) {
+        // 校验nonce唯一字符串,取redis中存入的nonce唯一值
+        String nonceValue = redisLimiterManager.getNonce(nonce);
+        // redis中存在值，则为重复请求，取消调用
+        if (StringUtils.isNotEmpty(nonceValue)) {
             return null;
         }
-
-        // TODO 校验过期时间 与当前时间不能超过5分钟
+        redisLimiterManager.setNonceFor5Min(nonce);
+        // 校验过期时间 与当前时间不能超过5分钟
         long currentTime = System.currentTimeMillis() / 1000;
         final long FIVE_MINUTES = 60 * 5;
         long historyTime = Long.parseLong(timestamp) / 1000;
@@ -270,19 +263,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             return null;
         }
         return user;
-    }
-
-    /**
-     * redisson分布式限流
-     * @param key
-     * @return
-     */
-    private boolean doRateLimit(String key){
-        // 获取限流器
-        RRateLimiter rateLimiter = redissonClient.getRateLimiter(key);
-        // 一秒内只能接受一次请求
-        rateLimiter.setRate(RateType.OVERALL,1,1, RateIntervalUnit.SECONDS);
-        return rateLimiter.tryAcquire(1);
     }
 
     /**
