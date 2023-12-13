@@ -13,10 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.reactivestreams.Publisher;
+import org.redisson.api.RRateLimiter;
+import org.redisson.api.RateIntervalUnit;
+import org.redisson.api.RateType;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -33,11 +36,10 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -54,27 +56,28 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
     private InterfaceInfoDubboService interfaceInfoDubboService;
     @Reference
     private UserDubboService userDubboService;
-
     @Reference
     private UserInterfaceInfoDubboService userInterfaceInfoDubboService;
 
-    private final RedisRateLimiter redisRateLimiter;
+    /**
+     * redisson限流
+     */
+    private final RedissonClient redissonClient;
 
     /**
      * 白名单
      */
-
     @Value("${ipcontrol.white}")
     public List<String> IP_WHITE_LIST;
 //    public static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-
-        long interfaceCount = interfaceInfoDubboService.count();
-        log.info("{}","Gateway Interceptor is come in :" + interfaceCount);
-        long userServiceCount = userDubboService.count();
-        log.info("{}","Gateway Interceptor is come in :" + userServiceCount);
+// 测试
+//        long interfaceCount = interfaceInfoDubboService.count();
+//        log.info("{}","Gateway Interceptor is come in :" + interfaceCount);
+//        long userServiceCount = userDubboService.count();
+//        log.info("{}","Gateway Interceptor is come in :" + userServiceCount);
 
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
@@ -83,13 +86,17 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         String sourceAddress = printRequestLog(request);
 
         // 2.访问控制 黑白名单
-
         if (!IP_WHITE_LIST.contains(sourceAddress)){
             return handleNoAuth(response);
         }
         // 3.用户鉴权
         User user = checkInvokeInterfaceAuth(request);
         if (user == null){
+            return handleNoAuth(response);
+        }
+        // redisson限流操作
+        boolean canOp = doRateLimit(user.getId());
+        if (!canOp){
             return handleNoAuth(response);
         }
         // 4.请求的模拟接口是否存在
@@ -166,7 +173,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                 ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
 
                     /**
-                     * 等转发的方法调用完才会执行
+                     * 等转发的方法调用完才会执行  promise
                      * @param body the body content publisher
                      * @return
                      */
@@ -263,6 +270,19 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             return null;
         }
         return user;
+    }
+
+    /**
+     * redisson分布式限流
+     * @param key
+     * @return
+     */
+    private boolean doRateLimit(String key){
+        // 获取限流器
+        RRateLimiter rateLimiter = redissonClient.getRateLimiter(key);
+        // 一秒内只能接受一次请求
+        rateLimiter.setRate(RateType.OVERALL,1,1, RateIntervalUnit.SECONDS);
+        return rateLimiter.tryAcquire(1);
     }
 
     /**

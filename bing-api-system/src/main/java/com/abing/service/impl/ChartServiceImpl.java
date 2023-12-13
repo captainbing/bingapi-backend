@@ -1,5 +1,6 @@
 package com.abing.service.impl;
 
+import cn.hutool.core.io.FileUtil;
 import com.abing.common.ErrorCode;
 import com.abing.exception.BusinessException;
 import com.abing.manager.AiManager;
@@ -19,9 +20,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
 * @author 阿炳亿点点帅
@@ -38,6 +40,9 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
 
     @Override
     public ChartVO genChartByAi(GenChartByAiRequest genChartByAiRequest, MultipartFile multipartFile) {
+
+        // 校验文件
+        checkExcelFileIsLegal(multipartFile);
 
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
@@ -86,6 +91,22 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         chartVO.setGenChart(genChart);
         chartVO.setGenResult(genResult);
         return chartVO;
+    }
+
+    /**
+     * 校验文件是否合法
+     * @param multipartFile
+     */
+    private void checkExcelFileIsLegal(MultipartFile multipartFile) {
+        // 校验文件大小
+        final long ONE_MB = 1024 * 1024L;
+        long fileSize = multipartFile.getSize();
+        ThrowUtils.throwIf(fileSize > ONE_MB,ErrorCode.PARAMS_ERROR,"文件大小超过1MB,请重新上传!");
+        // 校验文件后缀
+        String fileName = multipartFile.getName();
+        String fileSuffix = FileUtil.getSuffix(fileName);
+        List<String> legalSuffix = Arrays.asList("xlsx", "xls");
+        ThrowUtils.throwIf(!legalSuffix.contains(fileSuffix),ErrorCode.PARAMS_ERROR,"文件后缀不合法!");
     }
 }
 
