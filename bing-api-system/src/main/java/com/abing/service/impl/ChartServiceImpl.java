@@ -93,11 +93,8 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         return chartVO;
     }
 
-    /**
-     * 校验文件是否合法
-     * @param multipartFile
-     */
-    private void checkExcelFileIsLegal(MultipartFile multipartFile) {
+    @Override
+    public void checkExcelFileIsLegal(MultipartFile multipartFile) {
         // 校验文件大小
         final long ONE_MB = 1024 * 1024L;
         long fileSize = multipartFile.getSize();

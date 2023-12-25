@@ -4,6 +4,7 @@ import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
 import com.abing.model.domain.SysConfig;
+import com.abing.model.enums.DefaultTypeEnum;
 import com.abing.service.SysConfigService;
 import com.abing.utils.ThrowUtils;
 import com.abing.utils.TokenUtils;
@@ -36,10 +37,15 @@ public class ConfigController {
         IPage<SysConfig> configPage = new Page<>();
         configPage.setCurrent(current);
         configPage.setSize(size);
+        DefaultTypeEnum anEnum = DefaultTypeEnum.getEnumByText(config.getConfigType());
+        ThrowUtils.throwIf(anEnum == null,ErrorCode.PARAMS_ERROR);
+
         IPage<SysConfig> page = configService.page(configPage, new QueryWrapper<SysConfig>()
                 .lambda()
-                .eq(StringUtils.isNotEmpty(config.getConfigKey()), SysConfig::getConfigKey, config.getConfigKey())
-                .eq(StringUtils.isNotEmpty(config.getConfigType()), SysConfig::getConfigType, config.getConfigType()));
+                .like(StringUtils.isNotEmpty(config.getConfigKey()), SysConfig::getConfigKey, config.getConfigKey())
+                .like(StringUtils.isNotEmpty(config.getConfigValue()), SysConfig::getConfigValue, config.getConfigValue())
+                .eq(anEnum.getText() != DefaultTypeEnum.ALl.getText(), SysConfig::getConfigType, config.getConfigType())
+                .orderByDesc(SysConfig::getCreateTime));
         return ResultUtils.success(page);
     }
 

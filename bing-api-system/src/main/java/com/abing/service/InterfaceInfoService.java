@@ -21,17 +21,16 @@ public interface InterfaceInfoService extends IService<InterfaceInfo> {
 
     /**
      * 展示接口调用情况
-     * @param user
      * @return
      */
-    List<InterfaceInfoVO> listInterfaces(User user);
+    List<InterfaceInfoDTO> listInterfaceFromIndex();
 
     /**
      * 根据名字查询接口名称
      * @param interfaceInfoDTO
      * @return
      */
-    List<InterfaceInfoVO>searchInterfacesByName(InterfaceInfoDTO interfaceInfoDTO);
+    List<InterfaceInfoDTO>searchInterfacesByName(InterfaceInfoDTO interfaceInfoDTO);
 
     /**
      * 查询接口 根据 name status method

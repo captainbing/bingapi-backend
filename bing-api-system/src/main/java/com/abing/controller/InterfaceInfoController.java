@@ -60,18 +60,12 @@ public class InterfaceInfoController {
 
 
     @GetMapping("/listInterfaces")
-    public BaseResponse<List<InterfaceInfoVO>> listInterfaces(User user){
-        if (user.getId() == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        return ResultUtils.success(interfaceInfoService.listInterfaces(user));
+    public BaseResponse<List<InterfaceInfoDTO>> listInterfaces(){
+        return ResultUtils.success(interfaceInfoService.listInterfaceFromIndex());
     }
 
     @GetMapping("/search")
-    public BaseResponse<List<InterfaceInfoVO>> searchInterfacesByName(InterfaceInfoDTO interfaceRequest){
-        if (interfaceRequest.getName() == null || interfaceRequest.getUserId() == null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
+    public BaseResponse<List<InterfaceInfoDTO>> searchInterfacesByName(InterfaceInfoDTO interfaceRequest){
         return ResultUtils.success(interfaceInfoService.searchInterfacesByName(interfaceRequest));
     }
 

@@ -37,11 +37,6 @@ public class DictData implements Serializable {
     private String dictType;
 
     /**
-     * 是否默认（Y是 N否）
-     */
-    private String defaultFlag;
-
-    /**
      * 状态（0正常 1停用）
      */
     private String status;

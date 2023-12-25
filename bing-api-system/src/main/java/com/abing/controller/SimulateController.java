@@ -1,33 +1,27 @@
 package com.abing.controller;
 
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.io.FileUtil;
-import com.abing.api.utils.SignUtils;
 import com.abing.common.BaseResponse;
 import com.abing.common.ErrorCode;
 import com.abing.common.ResultUtils;
 import com.abing.exception.BusinessException;
-import com.abing.model.domain.User;
 import com.abing.model.dto.search.QQRequest;
+import com.abing.model.request.chart.GenChartByAiRequest;
+import com.abing.model.vo.chart.ChartVO;
 import com.abing.service.SimulateService;
 import com.abing.service.UserService;
 import com.abing.utils.CaptchaUtils;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +29,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -69,6 +62,13 @@ public class SimulateController {
     @GetMapping("/qq")
     public BaseResponse<String> getQQImage(QQRequest qqRequest){
         return ResultUtils.success(simulateService.fetchQQAvatar(qqRequest));
+    }
+
+
+    @PostMapping("/gen/async")
+    public BaseResponse<ChartVO> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
+                                              GenChartByAiRequest genChartByAiRequest) {
+        return ResultUtils.success(simulateService.genChartAsyncByAi(genChartByAiRequest, multipartFile));
     }
 
 

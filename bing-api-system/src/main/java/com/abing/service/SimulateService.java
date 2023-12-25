@@ -1,6 +1,9 @@
 package com.abing.service;
 
 import com.abing.model.dto.search.QQRequest;
+import com.abing.model.request.chart.GenChartByAiRequest;
+import com.abing.model.vo.chart.ChartVO;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @Author CaptainBing
@@ -24,4 +27,11 @@ public interface SimulateService {
      */
     String fetchQQAvatar(QQRequest qqRequest);
 
+    /**
+     * 异步生成图表
+     * @param genChartByAiRequest
+     * @param multipartFile
+     * @return
+     */
+    ChartVO genChartAsyncByAi(GenChartByAiRequest genChartByAiRequest, MultipartFile multipartFile);
 }

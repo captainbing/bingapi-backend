@@ -38,8 +38,9 @@ public class DictTypeController {
         dictTypePage.setSize(size);
         IPage<DictType> page = dictTypeService.page(dictTypePage, new QueryWrapper<DictType>()
                 .lambda()
-                .eq(StringUtils.isNotEmpty(dictType.getDictName()), DictType::getDictName, dictType.getDictName())
-                .like(StringUtils.isNotEmpty(dictType.getDictType()), DictType::getDictType, dictType.getDictType()));
+                .like(StringUtils.isNotEmpty(dictType.getDictName()), DictType::getDictName, dictType.getDictName())
+                .like(StringUtils.isNotEmpty(dictType.getDictType()), DictType::getDictType, dictType.getDictType())
+                .eq(StringUtils.isNotEmpty(dictType.getStatus()),DictType::getStatus,dictType.getStatus()));
         return ResultUtils.success(page);
     }
 

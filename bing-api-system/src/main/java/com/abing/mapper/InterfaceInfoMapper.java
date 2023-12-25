@@ -17,10 +17,9 @@ public interface InterfaceInfoMapper extends BaseMapper<InterfaceInfo> {
 
     /**
      * 获取当前用户所有接口的获取情况
-     * @param user
      * @return
      */
-    List<InterfaceInfoDTO> listInterfaces(User user);
+    List<InterfaceInfoDTO> listInterfaceFromIndex();
 
 
     List<InterfaceInfoDTO> searchInterfacesByName(InterfaceInfoDTO interfaceRequest);

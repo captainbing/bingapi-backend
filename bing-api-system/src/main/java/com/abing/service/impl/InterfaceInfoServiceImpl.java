@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,46 +50,50 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
      * @return
      */
     @Override
-    public List<InterfaceInfoVO> listInterfaces(User user) {
-        List<InterfaceInfoDTO> interfaceInfoDTOS = interfaceInfoMapper.listInterfaces(user);
-        return interfaceInfoDTOS.stream().map(interfaceInfoDTO -> {
-            InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
-            interfaceInfoVO.setId(interfaceInfoDTO.getId());
-            interfaceInfoVO.setName(interfaceInfoDTO.getName());
-            interfaceInfoVO.setDesc(interfaceInfoDTO.getDescription());
-            List<ProList> content = IntStream.range(0, 3).boxed().map(i -> {
-                ProList proList = new ProList();
-                switch (i){
-                    case 0:
-                        proList.setLabel("接口状态");
-                        proList.setValue(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        break;
-                    case 1:
-                        proList.setLabel("总调用次数");
-                        proList.setValue(String.valueOf(interfaceInfoDTO.getInvokeTotal()));
-                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        break;
-                    case 2:
-                        proList.setLabel("剩余调用次数");
-                        proList.setValue(String.valueOf(interfaceInfoDTO.getLeftNum()));
-                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        break;
-                    default:{}
-                }
-                return proList;
-            }).collect(Collectors.toList());
-            interfaceInfoVO.setContent(content);
-            return interfaceInfoVO;
-        }).collect(Collectors.toList());
+    public List<InterfaceInfoDTO> listInterfaceFromIndex() {
+        List<InterfaceInfoDTO> interfaceInfoDTOS = interfaceInfoMapper.listInterfaceFromIndex();
+        return interfaceInfoDTOS;
+
+
+        // ProList形式
+//        return interfaceInfoDTOS.stream().map(interfaceInfoDTO -> {
+//            InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
+//            interfaceInfoVO.setId(interfaceInfoDTO.getId());
+//            interfaceInfoVO.setName(interfaceInfoDTO.getName());
+//            interfaceInfoVO.setDesc(interfaceInfoDTO.getDescription());
+//            List<ProList> content = IntStream.range(0, 3).boxed().map(i -> {
+//                ProList proList = new ProList();
+//                switch (i){
+//                    case 0:
+//                        proList.setLabel("接口状态");
+//                        proList.setValue(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        break;
+//                    case 1:
+//                        proList.setLabel("总调用次数");
+//                        proList.setValue(String.valueOf(interfaceInfoDTO.getInvokeTotal()));
+//                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        break;
+//                    case 2:
+//                        proList.setLabel("剩余调用次数");
+//                        proList.setValue(String.valueOf(interfaceInfoDTO.getLeftNum()));
+//                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        break;
+//                    default:{}
+//                }
+//                return proList;
+//            }).collect(Collectors.toList());
+//            interfaceInfoVO.setContent(content);
+//            return interfaceInfoVO;
+//        }).collect(Collectors.toList());
     }
 
     /**
@@ -98,46 +101,48 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
      * @return
      */
     @Override
-    public List<InterfaceInfoVO> searchInterfacesByName(InterfaceInfoDTO interfaceRequest) {
+    public List<InterfaceInfoDTO> searchInterfacesByName(InterfaceInfoDTO interfaceRequest) {
         List<InterfaceInfoDTO> interfaceInfoDTOS = interfaceInfoMapper.searchInterfacesByName(interfaceRequest);
-        return interfaceInfoDTOS.stream().map(interfaceInfoDTO -> {
-            InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
-            interfaceInfoVO.setName(interfaceInfoDTO.getName());
-            interfaceInfoVO.setId(interfaceInfoDTO.getId());
-            interfaceInfoVO.setDesc(interfaceInfoDTO.getDescription());
-            List<ProList> content = IntStream.range(0, 3).boxed().map(i -> {
-                ProList proList = new ProList();
-                switch (i){
-                    case 0:
-                        proList.setLabel("接口状态");
-                        proList.setValue(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        break;
-                    case 1:
-                        proList.setLabel("总调用次数");
-                        proList.setValue(String.valueOf(interfaceInfoDTO.getInvokeTotal()));
-                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        break;
-                    case 2:
-                        proList.setLabel("剩余调用次数");
-                        proList.setValue(String.valueOf(interfaceInfoDTO.getLeftNum()));
-                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
-                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
-                                : InterfaceInfoEnum.CLOSE.getDescription());
-                        break;
-                    default:{}
-                }
-                return proList;
-            }).collect(Collectors.toList());
-            interfaceInfoVO.setContent(content);
-            return interfaceInfoVO;
-        }).collect(Collectors.toList());
+        return interfaceInfoDTOS;
+        // proList 形式
+//        return interfaceInfoDTOS.stream().map(interfaceInfoDTO -> {
+//            InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
+//            interfaceInfoVO.setName(interfaceInfoDTO.getName());
+//            interfaceInfoVO.setId(interfaceInfoDTO.getId());
+//            interfaceInfoVO.setDesc(interfaceInfoDTO.getDescription());
+//            List<ProList> content = IntStream.range(0, 3).boxed().map(i -> {
+//                ProList proList = new ProList();
+//                switch (i){
+//                    case 0:
+//                        proList.setLabel("接口状态");
+//                        proList.setValue(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        break;
+//                    case 1:
+//                        proList.setLabel("总调用次数");
+//                        proList.setValue(String.valueOf(interfaceInfoDTO.getInvokeTotal()));
+//                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        break;
+//                    case 2:
+//                        proList.setLabel("剩余调用次数");
+//                        proList.setValue(String.valueOf(interfaceInfoDTO.getLeftNum()));
+//                        proList.setStatus(InterfaceInfoEnum.AVAILABLE.getStatus().equals(interfaceInfoDTO.getStatus())
+//                                ? InterfaceInfoEnum.AVAILABLE.getDescription()
+//                                : InterfaceInfoEnum.CLOSE.getDescription());
+//                        break;
+//                    default:{}
+//                }
+//                return proList;
+//            }).collect(Collectors.toList());
+//            interfaceInfoVO.setContent(content);
+//            return interfaceInfoVO;
+//        }).collect(Collectors.toList());
     }
 
     /**

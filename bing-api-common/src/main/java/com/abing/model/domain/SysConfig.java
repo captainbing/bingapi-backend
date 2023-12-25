@@ -34,7 +34,7 @@ public class SysConfig implements Serializable {
     /**
      * 系统内置（Y是 N否）
      */
-    private String configType;
+    private Integer configType;
 
     /**
      * 创建者

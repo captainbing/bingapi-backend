@@ -20,4 +20,11 @@ public interface ChartService extends IService<Chart> {
      * @return
      */
     ChartVO genChartByAi(GenChartByAiRequest genChartByAiRequest, MultipartFile multipartFile);
+
+    /**
+     * 校验文件是否合法
+     * @param multipartFile
+     */
+    void checkExcelFileIsLegal(MultipartFile multipartFile);
+
 }

@@ -28,19 +28,11 @@
         createTime,updateTime,invokeTotal,deleted
     </sql>
 
-    <select id="listInterfaces" parameterType="com.abing.model.domain.User"
+    <select id="listInterfaceFromIndex" parameterType="com.abing.model.domain.User"
             resultType="com.abing.model.dto.interfaceinfo.InterfaceInfoDTO">
-        select
-        i.id,i.name,i.description,
-        i.url,i.requestHeader,i.responseHeader,
-        i.status,i.method,i.userId,
-        i.createTime,i.updateTime,i.invokeTotal,i.deleted,ui.leftNum
-        from interface_info i
-        inner join user_interface_info ui on i.id = ui.interfaceInfoId
-        where ui.userId = #{id}
-<!--        <if test="name != null">-->
-<!--            and i.name like concat('%',#{name},'%')-->
-<!--        </if>-->
+        select ii.id,SUM(totalNum) totalNum,ii.`name`,ii.description,ii.`status`
+        from interface_info ii JOIN user_interface_info uii on ii.id=uii.interfaceInfoId
+        GROUP BY uii.interfaceInfoId ORDER BY totalNum DESC
     </select>
 
     <select id="searchInterfacesByName" parameterType="com.abing.model.domain.UserInterfaceInfo"

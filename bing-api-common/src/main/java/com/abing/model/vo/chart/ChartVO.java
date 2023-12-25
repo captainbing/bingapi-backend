@@ -14,6 +14,11 @@ import lombok.experimental.FieldDefaults;
 public class ChartVO {
 
     /**
+     * 图表ID
+     */
+    Long chartId;
+
+    /**
      * 生成的图表数据
      */
     String genChart;

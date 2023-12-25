@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  * @Date 2023/11/29 14:25
  * @Description
  */
-@Configuration
+//@Configuration
 public class RedisRateLimitConfig {
 
 

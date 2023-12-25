@@ -8,13 +8,30 @@ import lombok.Data;
  * @Description
  */
 @Data
-public class InterfaceInfoDTO extends InterfaceInfo{
+public class InterfaceInfoDTO{
+
+    /**
+     * API ID 接口Id
+     */
+    private Long id;
+
+    /**
+     * API状态
+     */
+    private Integer status;
+
     /**
      * 当前用户接口剩余调用次数
      */
-    private Long leftNum;
+    private Long totalNum;
+
     /**
-     * 用户ID
+     * API名称
      */
-    private Long userId;
+    private String name;
+
+    /**
+     * API描述
+     */
+    private String description;
 }
