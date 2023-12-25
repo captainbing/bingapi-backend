@@ -14,10 +14,10 @@ spring:
     # 30 天过期
 #    timeout: 2592000
   redis:
-    host: 47.98.123.166
+    host: 127.0.0.1
     port: 6379
     database: 10
-    password: Dy573367796@redis
+    password: 
     connect-timeout: 5000
   mail:
     default-encoding: UTF-8     # 默认编码模式
@@ -127,7 +127,7 @@ bing:
 # TODO 设置为自己的
 yuapi:
   client:
-    access-key: sqhseo59pz5dggwajlaklzbcwui2eumy
-    secret-key: tgtezejrb1p9kbqaoypxro80e4bt6d0l
+    access-key: 
+    secret-key: 
 
 
